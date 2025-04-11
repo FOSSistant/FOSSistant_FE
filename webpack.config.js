@@ -6,8 +6,6 @@ const webpack = require('webpack');
 const reactConfig = {
   mode: 'production',
   entry: {
-    popup: './src/popup.tsx',
-    options: './src/options.tsx',
     sidepanel: './src/sidepanel.tsx'
   },
   output: {
