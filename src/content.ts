@@ -103,8 +103,10 @@ function injectStyles() {
       z-index: 2147483647;
       right: 1rem;
       top: 50%;
-      transform: translateY(-50%);
-      pointer-events: none;
+      transform: translate3d(0, -50%, 0);
+      pointer-events: auto;
+      touch-action: none;
+      user-select: none;
     }
 
     .floating-button {
@@ -120,21 +122,20 @@ function injectStyles() {
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.3s ease;
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       padding: 0.75rem;
-    }
-
-    .floating-button-icon {
-      stroke: currentColor;
-      width: 100%;
-      height: 100%;
     }
 
     .floating-button:hover {
       transform: translateX(-4px);
       background: linear-gradient(135deg, #373E47 0%, #2D333B 100%);
       box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .floating-button-icon {
+      stroke: currentColor;
+      width: 100%;
+      height: 100%;
     }
   `;
   document.head.appendChild(style);
@@ -153,19 +154,60 @@ if (document.readyState === 'loading') {
   init();
 }
 
-// 동적 페이지 변경 감지를 위한 옵저버 설정
+// 깃허브 이슈 페이지 확인 및 라벨 변경 함수
+function checkAndModifyGitHubIssues() {
+  // 깃허브 이슈 페이지인지 확인
+  if (!window.location.href.includes('github.com') || !window.location.href.includes('/issues')) {
+    return;
+  }
+
+  // IssueRow 요소들 찾기
+  const issueRows = document.querySelectorAll('.IssueRow-module__row--XmR1f');
+  
+  issueRows.forEach(row => {
+    // h3 태그 찾기
+    const titleH3 = row.querySelector('h3');
+    if (!titleH3) return;
+
+    // 이미 추가된 라벨이 있는지 확인
+    const existingCustomLabel = titleH3.querySelector('.custom-label');
+    if (!existingCustomLabel) {
+      // 새로운 라벨 생성
+      const newLabel = document.createElement('span');
+      newLabel.className = 'Label custom-label';
+      newLabel.textContent = 'Review';
+      
+      // 스타일 적용
+      newLabel.style.backgroundColor = '#8250df';
+      newLabel.style.color = '#ffffff';
+      newLabel.style.padding = '0 7px';
+      newLabel.style.fontSize = '12px';
+      newLabel.style.fontWeight = '500';
+      newLabel.style.borderRadius = '2em';
+      newLabel.style.marginRight = '8px';
+      newLabel.style.display = 'inline-block';
+      newLabel.style.lineHeight = '18px';
+      newLabel.style.verticalAlign = 'middle';
+      
+      // h3 태그의 첫 번째 자식 요소 앞에 라벨 추가
+      titleH3.insertBefore(newLabel, titleH3.firstChild);
+    }
+  });
+}
+
+// DOM 변경 감지를 위한 MutationObserver 설정
 const observer = new MutationObserver((mutations) => {
   for (const mutation of mutations) {
-    if (mutation.type === 'childList' && mutation.removedNodes.length > 0) {
-      const buttonExists = document.getElementById('floating-button-container');
-      if (!buttonExists) {
-        init();
-        break;
-      }
+    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+      checkAndModifyGitHubIssues();
     }
   }
 });
 
+// 초기 실행
+checkAndModifyGitHubIssues();
+
+// DOM 변경 감지 시작
 observer.observe(document.body, {
   childList: true,
   subtree: true
