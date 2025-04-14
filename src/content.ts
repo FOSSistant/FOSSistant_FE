@@ -172,22 +172,48 @@ function checkAndModifyGitHubIssues() {
     // 이미 추가된 라벨이 있는지 확인
     const existingCustomLabel = titleH3.querySelector('.custom-label');
     if (!existingCustomLabel) {
-      // 새로운 라벨 생성
+      // 티어 라벨 생성
+      const tiers = ['Bronze', 'Silver', 'Gold', 'Platinum', 'undefined'];
+      const randomTier = tiers[Math.floor(Math.random() * tiers.length)];
+      
       const newLabel = document.createElement('span');
       newLabel.className = 'Label custom-label';
-      newLabel.textContent = 'Review';
+      
+      // 아이콘과 텍스트를 포함하는 HTML 생성
+      const icon = randomTier === 'Bronze' ? '🥉' :
+                  randomTier === 'Silver' ? '🥈' :
+                  randomTier === 'Gold' ? '🥇' :
+                  randomTier === 'Platinum' ? '🏆' : '❓';
+      
+      newLabel.innerHTML = `
+        <span class="tier-icon">${icon}</span>
+        <span class="tier-text">${randomTier}</span>
+      `;
       
       // 스타일 적용
-      newLabel.style.backgroundColor = '#8250df';
-      newLabel.style.color = '#ffffff';
-      newLabel.style.padding = '0 7px';
+      newLabel.style.backgroundColor = randomTier === 'Bronze' ? 'rgba(173, 86, 0, 0.1)' : 
+                                     randomTier === 'Silver' ? 'rgba(67, 95, 122, 0.1)' : 
+                                     randomTier === 'Gold' ? 'rgba(236, 154, 0, 0.1)' : 
+                                     randomTier === 'Platinum' ? 'rgba(39, 226, 164, 0.1)' : 'rgba(110, 119, 129, 0.1)';
+      newLabel.style.color = randomTier === 'Bronze' ? '#ad5600' : 
+                            randomTier === 'Silver' ? '#435f7a' : 
+                            randomTier === 'Gold' ? '#ec9a00' : 
+                            randomTier === 'Platinum' ? '#27e2a4' : '#6e7781';
+      newLabel.style.padding = '4px 8px';
       newLabel.style.fontSize = '12px';
-      newLabel.style.fontWeight = '500';
-      newLabel.style.borderRadius = '2em';
+      newLabel.style.fontWeight = '600';
+      newLabel.style.borderRadius = '6px';
       newLabel.style.marginRight = '8px';
-      newLabel.style.display = 'inline-block';
-      newLabel.style.lineHeight = '18px';
+      newLabel.style.display = 'inline-flex';
+      newLabel.style.alignItems = 'center';
+      newLabel.style.gap = '4px';
+      newLabel.style.lineHeight = '1';
       newLabel.style.verticalAlign = 'middle';
+      newLabel.style.border = '1px solid';
+      newLabel.style.borderColor = randomTier === 'Bronze' ? 'rgba(173, 86, 0, 0.2)' : 
+                                  randomTier === 'Silver' ? 'rgba(67, 95, 122, 0.2)' : 
+                                  randomTier === 'Gold' ? 'rgba(236, 154, 0, 0.2)' : 
+                                  randomTier === 'Platinum' ? 'rgba(39, 226, 164, 0.2)' : 'rgba(110, 119, 129, 0.2)';
       
       // h3 태그의 첫 번째 자식 요소 앞에 라벨 추가
       titleH3.insertBefore(newLabel, titleH3.firstChild);
