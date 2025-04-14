@@ -1,34 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { UrlInfo, Note } from './types';
+import { UrlInfo, TrendingRepo } from './types';
 import './index.css';
 
 const SidePanel: React.FC = () => {
   const [currentUrl, setCurrentUrl] = useState<UrlInfo | null>(null);
-  const [recentUrls, setRecentUrls] = useState<UrlInfo[]>([]);
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [newNote, setNewNote] = useState('');
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [pageType, setPageType] = useState<'list' | 'detail' | null>(null);
+  const [trendingRepos, setTrendingRepos] = useState<TrendingRepo[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     // 현재 URL 정보 로드
     chrome.storage.local.get(['currentUrlInfo'], (result) => {
       if (result.currentUrlInfo) {
         setCurrentUrl(result.currentUrlInfo);
-      }
-    });
-
-    // 최근 방문 URL 로드
-    chrome.storage.local.get(['recentUrls'], (result) => {
-      if (result.recentUrls) {
-        setRecentUrls(result.recentUrls);
-      }
-    });
-
-    // 메모 로드
-    chrome.storage.local.get(['notes'], (result) => {
-      if (result.notes) {
-        setNotes(result.notes);
+        // URL을 기반으로 페이지 타입 결정
+        const url = result.currentUrlInfo.url;
+        if (url.endsWith('/issues')) {
+          setPageType('list');
+        } else if (/\/issues\/\d+$/.test(url)) {
+          setPageType('detail');
+        } else {
+          setPageType(null);
+          fetchTrendingRepos();
+        }
       }
     });
 
@@ -43,6 +39,16 @@ const SidePanel: React.FC = () => {
     const messageListener = (message: any) => {
       if (message.type === 'UPDATE_URL_INFO') {
         setCurrentUrl(message.data);
+        // URL을 기반으로 페이지 타입 결정
+        const url = message.data.url;
+        if (url.endsWith('/issues')) {
+          setPageType('list');
+        } else if (/\/issues\/\d+$/.test(url)) {
+          setPageType('detail');
+        } else {
+          setPageType(null);
+          fetchTrendingRepos();
+        }
       }
     };
 
@@ -53,26 +59,34 @@ const SidePanel: React.FC = () => {
     };
   }, []);
 
-  const handleAddNote = () => {
-    if (!newNote.trim()) return;
+  const fetchTrendingRepos = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch('https://api.github.com/search/repositories?q=stars:>1000&sort=stars&order=desc&per_page=5');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      
+      if (!data || !data.items || !Array.isArray(data.items)) {
+        throw new Error('Invalid API response format');
+      }
 
-    const note: Note = {
-      id: Date.now().toString(),
-      content: newNote,
-      timestamp: Date.now()
-    };
-
-    const updatedNotes = [note, ...notes];
-    setNotes(updatedNotes);
-    setNewNote('');
-
-    chrome.storage.local.set({ notes: updatedNotes });
-  };
-
-  const handleDeleteNote = (id: string) => {
-    const updatedNotes = notes.filter(note => note.id !== id);
-    setNotes(updatedNotes);
-    chrome.storage.local.set({ notes: updatedNotes });
+      const repos = data.items.map((repo: any) => ({
+        name: repo.full_name,
+        description: repo.description || 'No description available',
+        stars: repo.stargazers_count,
+        language: repo.language || 'Unknown',
+        url: repo.html_url
+      }));
+      setTrendingRepos(repos);
+    } catch (error) {
+      console.error('Error fetching trending repos:', error);
+      // 에러 발생 시 빈 배열로 설정
+      setTrendingRepos([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleTheme = () => {
@@ -99,41 +113,67 @@ const SidePanel: React.FC = () => {
         )}
       </div>
 
-      {/* 빠른 메모 */}
-      <div className="notes-section">
-        <h3>빠른 메모</h3>
-        <div className="note-input">
-          <input
-            type="text"
-            value={newNote}
-            onChange={(e) => setNewNote(e.target.value)}
-            placeholder="메모를 입력하세요"
-            onKeyPress={(e) => e.key === 'Enter' && handleAddNote()}
-          />
-          <button onClick={handleAddNote}>추가</button>
+      {/* 페이지 타입 정보 */}
+      {pageType && (
+        <div className="page-type-info">
+          <div className={`page-type-badge ${pageType}`}>
+            {pageType === 'list' ? '이슈 리스트 페이지' : '이슈 상세 페이지'}
+          </div>
         </div>
-        <div className="notes-list">
-          {notes.map(note => (
-            <div key={note.id} className="note-item">
-              <p>{note.content}</p>
-              <button onClick={() => handleDeleteNote(note.id)}>삭제</button>
-            </div>
-          ))}
-        </div>
-      </div>
+      )}
 
-      {/* 최근 방문 사이트 */}
-      <div className="recent-sites">
-        <h3>최근 방문</h3>
-        <div className="sites-list">
-          {recentUrls.slice(0, 5).map((url, index) => (
-            <a key={index} href={url.url} className="site-item">
-              <img src={url.favicon} alt="" />
-              <span>{url.title}</span>
-            </a>
-          ))}
+      {/* 페이지 설명 */}
+      {pageType && (
+        <div className="page-description">
+          {pageType === 'list' && (
+            <div className="description-content">
+              <h3>이슈 리스트 페이지</h3>
+              <p>현재 보고 계신 페이지는 GitHub 이슈 목록 페이지입니다.</p>
+              <ul>
+                <li>모든 이슈를 한눈에 볼 수 있습니다.</li>
+                <li>이슈의 상태, 라벨, 담당자 등을 확인할 수 있습니다.</li>
+                <li>새로운 이슈를 생성할 수 있습니다.</li>
+              </ul>
+            </div>
+          )}
+          {pageType === 'detail' && (
+            <div className="description-content">
+              <h3>이슈 상세 페이지</h3>
+              <p>현재 보고 계신 페이지는 특정 이슈의 상세 정보 페이지입니다.</p>
+              <ul>
+                <li>이슈의 제목과 내용을 확인할 수 있습니다.</li>
+                <li>댓글을 작성하고 이슈를 수정할 수 있습니다.</li>
+                <li>이슈의 상태를 변경할 수 있습니다.</li>
+              </ul>
+            </div>
+          )}
         </div>
-      </div>
+      )}
+
+      {/* 트렌딩 레포지토리 */}
+      {!pageType && (
+        <div className="trending-repos">
+          <h3>🔥 트렌딩 레포지토리</h3>
+          {isLoading ? (
+            <div className="loading">로딩 중...</div>
+          ) : (
+            <div className="repos-list">
+              {trendingRepos.map((repo, index) => (
+                <a key={index} href={repo.url} className="repo-item" target="_blank" rel="noopener noreferrer">
+                  <div className="repo-header">
+                    <h4>{repo.name}</h4>
+                    <span className="stars">⭐ {repo.stars.toLocaleString()}</span>
+                  </div>
+                  <p className="description">{repo.description}</p>
+                  <div className="repo-footer">
+                    <span className="language">{repo.language}</span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

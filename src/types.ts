@@ -4,6 +4,14 @@ export interface UrlInfo {
   favicon: string;
 }
 
+export interface TrendingRepo {
+  name: string;
+  description: string;
+  stars: number;
+  language: string;
+  url: string;
+}
+
 export interface Note {
   id: string;
   content: string;
