@@ -23,4 +23,25 @@ export interface UserSettings {
   showClock: boolean;
   gridColumns: number;
   themeColor: string;
+}
+
+export interface IssueInfo {
+  title: string;
+  number: number;
+  state: 'open' | 'closed';
+  body: string;
+  created_at: string;
+  updated_at: string;
+  user: {
+    login: string;
+    avatar_url: string;
+  };
+  labels: {
+    name: string;
+    color: string;
+  }[];
+  comments: number;
+  reactions: {
+    total_count: number;
+  };
 } 
