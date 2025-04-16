@@ -11,108 +11,6 @@
   color: #333;
 }
 
-.newtab-container {
-  min-height: 100vh;
-  padding: 2rem;
-  background-size: cover;
-  background-position: center;
-  transition: background-color 0.3s ease;
-}
-
-.clock {
-  font-size: 4rem;
-  text-align: center;
-  margin-bottom: 2rem;
-  color: #333;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-.url-grid {
-  display: grid;
-  gap: 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.url-card {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 8px;
-  text-decoration: none;
-  color: #333;
-  transition: transform 0.2s ease;
-}
-
-.url-card:hover {
-  transform: translateY(-2px);
-}
-
-.url-card img {
-  width: 32px;
-  height: 32px;
-  margin-bottom: 0.5rem;
-}
-
-.url-card span {
-  text-align: center;
-  font-size: 0.9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-}
-
-.options-container {
-  max-width: 800px;
-  margin: 2rem auto;
-  padding: 2rem;
-  background: white;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.options-container h1 {
-  margin-bottom: 2rem;
-  color: #333;
-  text-align: center;
-}
-
-.setting-group {
-  margin-bottom: 1.5rem;
-}
-
-.setting-group label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  color: #666;
-}
-
-.setting-group input[type="text"],
-.setting-group input[type="number"] {
-  padding: 0.5rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.setting-group input[type="checkbox"] {
-  width: 20px;
-  height: 20px;
-}
-
-.setting-group input[type="color"] {
-  width: 100px;
-  height: 40px;
-  padding: 0;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
 /* 사이드패널 스타일 */
 .sidepanel-container {
   position: relative;
@@ -169,75 +67,6 @@
   color: #aaa;
 }
 
-/* 메모 섹션 */
-.notes-section {
-  margin-bottom: 1.5rem;
-}
-
-.notes-section h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.note-input {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.note-input input {
-  flex: 1;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
-  border: 2px solid #e5e7eb;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-
-.note-input input:focus {
-  outline: none;
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
-}
-
-.dark .note-input input {
-  background-color: #2d2d2d;
-  border-color: #4b5563;
-  color: #fff;
-}
-
-.dark .note-input input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
-}
-
-.note-input button,
-.theme-toggle {
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.note-input button {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  color: white;
-}
-
-.note-input button:hover {
-  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
-}
-
-.note-input button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
 
 .theme-toggle {
   background: linear-gradient(135deg, #ec4899 0%, #d946ef 100%);
@@ -262,109 +91,14 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.dark .note-input button {
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
 .dark .theme-toggle {
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
-.dark .note-input button:hover,
 .dark .theme-toggle:hover {
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.notes-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.note-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0.75rem;
-  border-radius: 4px;
-  background-color: #f5f5f5;
-}
-
-.dark .note-item {
-  background-color: #2d2d2d;
-}
-
-.note-item button {
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #475569 0%, #334155 100%);
-  color: white;
-  font-weight: 500;
-  font-size: 0.9rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.note-item button:hover {
-  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.note-item button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* 최근 방문 사이트 */
-.recent-sites {
-  margin-bottom: 1.5rem;
-}
-
-.recent-sites h3 {
-  font-size: 1rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-.sites-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.site-item {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem;
-  border-radius: 4px;
-  text-decoration: none;
-  color: inherit;
-  transition: background-color 0.2s ease;
-}
-
-.light .site-item:hover {
-  background-color: #f5f5f5;
-}
-
-.dark .site-item:hover {
-  background-color: #2d2d2d;
-}
-
-.site-item img {
-  width: 16px;
-  height: 16px;
-}
-
-.site-item span {
-  font-size: 0.9rem;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
 
 /* 테마 토글 버튼 */
 .theme-toggle-button {
@@ -424,43 +158,6 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* 삭제 버튼 스타일 */
-.note-item button {
-  padding: 0.4rem 0.8rem;
-  border-radius: 6px;
-  background: linear-gradient(135deg, #475569 0%, #334155 100%);
-  color: white;
-  font-weight: 500;
-  font-size: 0.9rem;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.note-item button:hover {
-  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
-
-.note-item button:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-/* 다크 모드에서의 버튼 스타일 */
-.dark .note-input button,
-.dark .note-item button {
-  background: linear-gradient(135deg, #475569 0%, #334155 100%);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.dark .note-input button:hover,
-.dark .note-item button:hover {
-  background: linear-gradient(135deg, #334155 0%, #1e293b 100%);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-}
 
 #floating-button-container {
   position: fixed;
