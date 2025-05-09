@@ -2,6 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import { UrlInfo, TrendingRepo, IssueInfo } from './types';
 import './index.css';
+import { IssueDetailInfo, IssueProps } from './components/IssueDetailInfo';
+import { IssueList } from './components/IssueList';
+import { TrendyRepos } from './components/TrendyRepos';
 
 const SidePanel: React.FC = () => {
   const [currentUrl, setCurrentUrl] = useState<UrlInfo | null>(null);
@@ -11,6 +14,15 @@ const SidePanel: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [issueInfo, setIssueInfo] = useState<IssueInfo | null>(null);
 
+  const dummyIssueInfo: IssueProps = {
+    tags: ['이슈', '해결', '방법'],
+    title: '이슈 제목',
+    description: '이슈 설명',
+    solution: '이슈 해결 방법',
+    cautions: '이슈 주의 사항',
+    difficulty: '상',
+  };
+  
   useEffect(() => {
     // 현재 URL 정보 로드
     chrome.storage.local.get(['currentUrlInfo'], (result) => {
@@ -144,7 +156,6 @@ const SidePanel: React.FC = () => {
           <>
             <img src={currentUrl.favicon} alt="" className="favicon" />
             <h2>{currentUrl.title}</h2>
-            <p className="url">{currentUrl.url}</p>
           </>
         )}
       </div>
@@ -164,47 +175,27 @@ const SidePanel: React.FC = () => {
           {isLoading ? (
             <div className="loading">로딩 중...</div>
           ) : issueInfo ? (
-            <div className="issue-callout">
-              <div className="issue-title">{issueInfo.title}</div>
-              <div className="issue-solution">
-                <ul>
-                  <li>이슈의 주요 문제점을 명확히 파악하고 우선순위를 정합니다.</li>
-                  <li>관련된 코드나 문서를 검토하여 문제의 원인을 파악합니다.</li>
-                  <li>필요한 경우 테스트 케이스를 작성하여 문제를 재현합니다.</li>
-                  <li>해결 방안을 구현하고 테스트를 진행합니다.</li>
-                  <li>변경사항을 문서화하고 PR을 생성합니다.</li>
-                </ul>
-              </div>
-            </div>
+                <IssueDetailInfo
+                  tags={dummyIssueInfo.tags}
+                  title={dummyIssueInfo.title}
+                  description={dummyIssueInfo.description}
+                  solution={dummyIssueInfo.solution}
+                  cautions={dummyIssueInfo.cautions}
+                  difficulty={dummyIssueInfo.difficulty}
+                />
           ) : (
             <div className="error">이슈 정보를 불러올 수 없습니다.</div>
           )}
         </div>
       )}
 
+      {pageType === 'list' && (
+        <IssueList />
+      )}
+
       {/* 트렌딩 레포지토리 */}
       {!pageType && (
-        <div className="trending-repos">
-          <h3>🔥 트렌딩 레포지토리</h3>
-          {isLoading ? (
-            <div className="loading">로딩 중...</div>
-          ) : (
-            <div className="repos-list">
-              {trendingRepos.map((repo, index) => (
-                <a key={index} href={repo.url} className="repo-item" target="_blank" rel="noopener noreferrer">
-                  <div className="repo-header">
-                    <h4>{repo.name}</h4>
-                    <span className="stars">⭐ {repo.stars.toLocaleString()}</span>
-                  </div>
-                  <p className="description">{repo.description}</p>
-                  <div className="repo-footer">
-                    <span className="language">{repo.language}</span>
-                  </div>
-                </a>
-              ))}
-            </div>
-          )}
-        </div>
+        <TrendyRepos repos={trendingRepos} />
       )}
     </div>
   );
