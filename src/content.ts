@@ -1,39 +1,5 @@
 console.log('Content script loaded');
 
-// 웹 페이지 내용 변경 함수
-const modifyPageContent = (text: string, replacement: string) => {
-  try {
-    // body의 모든 텍스트 노드를 순회하면서 변경
-    const walker = document.createTreeWalker(
-      document.body,
-      NodeFilter.SHOW_TEXT,
-      null
-    );
-
-    let node;
-    while (node = walker.nextNode()) {
-      if (node.textContent?.includes(text)) {
-        node.textContent = node.textContent.replace(new RegExp(text, 'g'), replacement);
-      }
-    }
-  } catch (error) {
-    console.error('페이지 내용 변경 실패:', error);
-  }
-};
-
-// 메시지 리스너
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('Content script received message:', message);
-  
-  if (message.type === 'MODIFY_CONTENT') {
-    const { text, replacement } = message.data;
-    modifyPageContent(text, replacement);
-    sendResponse({ success: true });
-  }
-  
-  return true;
-});
-
 // 플로팅 버튼 생성 및 추가
 function createFloatingButton() {
   const existingButton = document.getElementById('floating-button-container');
@@ -173,17 +139,15 @@ function checkAndModifyGitHubIssues() {
     const existingCustomLabel = titleH3.querySelector('.custom-label');
     if (!existingCustomLabel) {
       // 티어 라벨 생성
-      const tiers = ['Bronze', 'Silver', 'Gold', 'Platinum', 'undefined'];
+      const tiers = ['easy', 'hard', 'unknown'];
       const randomTier = tiers[Math.floor(Math.random() * tiers.length)];
       
       const newLabel = document.createElement('span');
       newLabel.className = 'Label custom-label';
       
       // 아이콘과 텍스트를 포함하는 HTML 생성
-      const icon = randomTier === 'Bronze' ? '🥉' :
-                  randomTier === 'Silver' ? '🥈' :
-                  randomTier === 'Gold' ? '🥇' :
-                  randomTier === 'Platinum' ? '🏆' : '❓';
+      const icon = randomTier === 'easy' ? '🧩' :
+                  randomTier === 'hard' ? '🔥' : '❓';
       
       newLabel.innerHTML = `
         <span class="tier-icon">${icon}</span>
@@ -191,14 +155,10 @@ function checkAndModifyGitHubIssues() {
       `;
       
       // 스타일 적용
-      newLabel.style.backgroundColor = randomTier === 'Bronze' ? 'rgba(173, 86, 0, 0.1)' : 
-                                     randomTier === 'Silver' ? 'rgba(67, 95, 122, 0.1)' : 
-                                     randomTier === 'Gold' ? 'rgba(236, 154, 0, 0.1)' : 
-                                     randomTier === 'Platinum' ? 'rgba(39, 226, 164, 0.1)' : 'rgba(110, 119, 129, 0.1)';
-      newLabel.style.color = randomTier === 'Bronze' ? '#ad5600' : 
-                            randomTier === 'Silver' ? '#435f7a' : 
-                            randomTier === 'Gold' ? '#ec9a00' : 
-                            randomTier === 'Platinum' ? '#27e2a4' : '#6e7781';
+      newLabel.style.backgroundColor = randomTier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
+                                     randomTier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
+      newLabel.style.color = randomTier === 'easy' ? '#43a047' : 
+                            randomTier === 'hard' ? '#e53935' : '#6e7781';
       newLabel.style.padding = '4px 8px';
       newLabel.style.fontSize = '12px';
       newLabel.style.fontWeight = '600';
@@ -210,10 +170,8 @@ function checkAndModifyGitHubIssues() {
       newLabel.style.lineHeight = '1';
       newLabel.style.verticalAlign = 'middle';
       newLabel.style.border = '1px solid';
-      newLabel.style.borderColor = randomTier === 'Bronze' ? 'rgba(173, 86, 0, 0.2)' : 
-                                  randomTier === 'Silver' ? 'rgba(67, 95, 122, 0.2)' : 
-                                  randomTier === 'Gold' ? 'rgba(236, 154, 0, 0.2)' : 
-                                  randomTier === 'Platinum' ? 'rgba(39, 226, 164, 0.2)' : 'rgba(110, 119, 129, 0.2)';
+      newLabel.style.borderColor = randomTier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
+                                  randomTier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
       
       // h3 태그의 첫 번째 자식 요소 앞에 라벨 추가
       titleH3.insertBefore(newLabel, titleH3.firstChild);
@@ -237,4 +195,9 @@ checkAndModifyGitHubIssues();
 observer.observe(document.body, {
   childList: true,
   subtree: true
-}); 
+});
+
+// 일정 시간(예: 1초) 후 observer 해제
+setTimeout(() => {
+  observer.disconnect();
+}, 1000); 
