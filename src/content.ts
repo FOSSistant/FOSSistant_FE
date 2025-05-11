@@ -1,3 +1,5 @@
+import { getIssueLabels, getIssuesFromGithub } from './api';
+import { injectStyles } from './contentStyle';
 console.log('Content script loaded');
 
 // 플로팅 버튼 생성 및 추가
@@ -60,53 +62,6 @@ function createFloatingButton() {
   document.body.appendChild(container);
 }
 
-// 스타일 주입
-function injectStyles() {
-  const style = document.createElement('style');
-  style.textContent = `
-    #floating-button-container {
-      position: fixed;
-      z-index: 2147483647;
-      right: 1rem;
-      top: 50%;
-      transform: translate3d(0, -50%, 0);
-      pointer-events: auto;
-      touch-action: none;
-      user-select: none;
-    }
-
-    .floating-button {
-      pointer-events: auto;
-      width: 3.5rem;
-      height: 3.5rem;
-      border: none;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #2D333B 0%, #22272E 100%);
-      color: white;
-      font-size: 1.2rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      padding: 0.75rem;
-    }
-
-    .floating-button:hover {
-      transform: translateX(-4px);
-      background: linear-gradient(135deg, #373E47 0%, #2D333B 100%);
-      box-shadow: 0 6px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .floating-button-icon {
-      stroke: currentColor;
-      width: 100%;
-      height: 100%;
-    }
-  `;
-  document.head.appendChild(style);
-}
-
 // 초기화
 function init() {
   injectStyles();
@@ -129,7 +84,7 @@ function checkAndModifyGitHubIssues() {
 
   // IssueRow 요소들 찾기
   const issueRows = document.querySelectorAll('.IssueRow-module__row--XmR1f');
-  
+  console.log(issueRows);
   issueRows.forEach(row => {
     // h3 태그 찾기
     const titleH3 = row.querySelector('h3');
@@ -143,7 +98,7 @@ function checkAndModifyGitHubIssues() {
       const randomTier = tiers[Math.floor(Math.random() * tiers.length)];
       
       const newLabel = document.createElement('span');
-      newLabel.className = 'Label custom-label';
+      newLabel.className = 'Label custom-label custom-label-style';
       
       // 아이콘과 텍스트를 포함하는 HTML 생성
       const icon = randomTier === 'easy' ? '🧩' :
@@ -159,17 +114,6 @@ function checkAndModifyGitHubIssues() {
                                      randomTier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
       newLabel.style.color = randomTier === 'easy' ? '#43a047' : 
                             randomTier === 'hard' ? '#e53935' : '#6e7781';
-      newLabel.style.padding = '4px 8px';
-      newLabel.style.fontSize = '12px';
-      newLabel.style.fontWeight = '600';
-      newLabel.style.borderRadius = '6px';
-      newLabel.style.marginRight = '8px';
-      newLabel.style.display = 'inline-flex';
-      newLabel.style.alignItems = 'center';
-      newLabel.style.gap = '4px';
-      newLabel.style.lineHeight = '1';
-      newLabel.style.verticalAlign = 'middle';
-      newLabel.style.border = '1px solid';
       newLabel.style.borderColor = randomTier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
                                   randomTier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
       
