@@ -4,33 +4,9 @@ import { UrlInfo } from './types';
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed');
   
-  // 초기 설정 저장
-  chrome.storage.sync.set({
-    userSettings: {
-      backgroundImage: '',
-      showClock: true,
-      gridColumns: 4,
-      themeColor: '#ffffff'
-    }
-  });
-});
-
-// 메시지 리스너
+  // 메시지 리스너
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message received:', message);
-  
-  if (message.type === 'MODIFY_CONTENT') {
-    const { text, replacement } = message.data;
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-      if (tabs[0]?.id) {
-        chrome.tabs.sendMessage(tabs[0].id, {
-          type: 'MODIFY_CONTENT',
-          data: { text, replacement }
-        });
-      }
-    });
-    return true; // 비동기 응답을 위해 true 반환
-  }
   
   // URL 정보 요청에 대한 응답 처리
   if (message.type === 'GET_URL_INFO') {
@@ -90,13 +66,6 @@ const updateUrlInfo = async (tabId: number) => {
       // 로컬 스토리지에 저장
       await chrome.storage.local.set({ currentUrlInfo: urlInfo });
       
-      // 최근 방문 URL 목록 업데이트
-      chrome.storage.local.get(['recentUrls'], (result) => {
-        const recentUrls = result.recentUrls || [];
-        const updatedUrls = [urlInfo, ...recentUrls.filter((url: UrlInfo) => url.url !== urlInfo.url)].slice(0, 12);
-        chrome.storage.local.set({ recentUrls: updatedUrls });
-      });
-      
       // 메시지 전송 시도
       try {
         await chrome.tabs.sendMessage(tabId, { type: 'UPDATE_URL_INFO', data: urlInfo });
@@ -136,4 +105,5 @@ chrome.action.onClicked.addListener((tab) => {
       windowId: tab.windowId
     });
   }
-}); 
+});
+});
