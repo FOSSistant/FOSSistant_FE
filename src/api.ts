@@ -1,15 +1,15 @@
-interface Issue {
-    issueId: string;
+export interface Issue {
+    html_url: string;
     title: string;
     body: string;
 }
 
-interface IssueLabel {
+export interface IssueLabel {
   id: number;
   difficulty: string;
 }
 
-interface IssueGuide {
+export interface IssueGuide {
   title: string;
   difficulty: string;
   description: string;
@@ -20,9 +20,26 @@ interface IssueGuide {
 // github로부터 이슈들 body 정보 가져오기
 export const getIssuesFromGithub = async (owner: string, repo: string, page: number): Promise<Issue[] | null> => {
   try {
-    const response = await fetch(`https://api.github.com/${owner}/${repo}/issues?page=${page}`);
-    const data = await response.json();
-    return data;
+    return await fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=open&sort=created&page=${page}`)
+    .then((res) => res.json())
+    .then((data) => {
+     const pureIssues = data.filter((issue: any) => !issue.pull_request)
+     const top30Issues = pureIssues.slice(0, 30);
+     return top30Issues;
+   });;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+};
+
+export const getIssueFromGithub = async (owner: string, repo: string, issueNumber: number): Promise<Issue | null> => {
+  try {
+    return await fetch(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`)
+    .then((res) => res.json())
+    .then((data) => {
+      return data;
+    });
   } catch (error) {
     console.log(error);
     return null;
