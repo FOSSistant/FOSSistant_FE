@@ -64,37 +64,50 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
+const debounceMap: { [tabId: number]: ReturnType<typeof setTimeout> } = {};
+const lastUrlMap: { [tabId: number]: string } = {};
+
 // URL 정보 업데이트 함수
 const updateUrlInfo = async (tabId: number) => {
-  try {
-    const tabInfo = await chrome.tabs.get(tabId);
-    if (!tabInfo.url || tabInfo.url.startsWith('chrome://')) return;
-    
-    const urlInfo: UrlInfo = {
-      url: tabInfo.url,
-      title: tabInfo.title || '',
-      favicon: tabInfo.favIconUrl || ''
-    };
-    
-    // 로컬 스토리지에 저장
-    await chrome.storage.local.set({ currentUrlInfo: urlInfo });
-    
-    // 최근 방문 URL 목록 업데이트
-    chrome.storage.local.get(['recentUrls'], (result) => {
-      const recentUrls = result.recentUrls || [];
-      const updatedUrls = [urlInfo, ...recentUrls.filter((url: UrlInfo) => url.url !== urlInfo.url)].slice(0, 12);
-      chrome.storage.local.set({ recentUrls: updatedUrls });
-    });
-    
-    // 메시지 전송 시도
-    try {
-      await chrome.runtime.sendMessage({ type: 'UPDATE_URL_INFO', data: urlInfo });
-    } catch (error) {
-      console.log('메시지 전송 실패 (수신자가 없음):', error);
-    }
-  } catch (error) {
-    console.error('URL 정보 업데이트 실패:', error);
+  if (debounceMap[tabId]) {
+    clearTimeout(debounceMap[tabId]);
   }
+  debounceMap[tabId] = setTimeout(async () => {
+    try {
+      const tabInfo = await chrome.tabs.get(tabId);
+      if (!tabInfo.url || tabInfo.url.startsWith('chrome://')) return;
+
+      // 중복 URL 방지
+      if (lastUrlMap[tabId] === tabInfo.url) return;
+      lastUrlMap[tabId] = tabInfo.url;
+
+      const urlInfo: UrlInfo = {
+        url: tabInfo.url,
+        title: tabInfo.title || '',
+        favicon: tabInfo.favIconUrl || ''
+      };
+      
+      // 로컬 스토리지에 저장
+      await chrome.storage.local.set({ currentUrlInfo: urlInfo });
+      
+      // 최근 방문 URL 목록 업데이트
+      chrome.storage.local.get(['recentUrls'], (result) => {
+        const recentUrls = result.recentUrls || [];
+        const updatedUrls = [urlInfo, ...recentUrls.filter((url: UrlInfo) => url.url !== urlInfo.url)].slice(0, 12);
+        chrome.storage.local.set({ recentUrls: updatedUrls });
+      });
+      
+      // 메시지 전송 시도
+      try {
+        await chrome.tabs.sendMessage(tabId, { type: 'UPDATE_URL_INFO', data: urlInfo });
+        await chrome.runtime.sendMessage({ type: 'UPDATE_URL_INFO', data: urlInfo });
+      } catch (error) {
+        console.log('메시지 전송 실패 (수신자가 없음):', error);
+      }
+    } catch (error) {
+      console.error('URL 정보 업데이트 실패:', error);
+    }
+  }, 2000);
 };
 
 // 탭이 활성화될 때마다 URL 정보 업데이트
@@ -104,6 +117,8 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 // 탭이 업데이트될 때마다 URL 정보 업데이트
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  console.log('onUpdated', tabId, changeInfo.status);
+
   if (changeInfo.status === 'complete') {
     await updateUrlInfo(tabId);
   }

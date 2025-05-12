@@ -178,26 +178,3 @@ async function checkAndModifyGitHubIssues() {
     }
   });
 }
-
-// DOM 변경 감지를 위한 MutationObserver 설정
-const observer = new MutationObserver((mutations) => {
-  for (const mutation of mutations) {
-    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
-      checkAndModifyGitHubIssues();
-    }
-  }
-});
-
-// 초기 실행
-checkAndModifyGitHubIssues();
-
-// DOM 변경 감지 시작
-observer.observe(document.body, {
-  childList: true,
-  subtree: true
-});
-
-// 일정 시간(예: 1초) 후 observer 해제
-setTimeout(() => {
-  observer.disconnect();
-}, 1000); 
