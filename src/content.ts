@@ -1,4 +1,4 @@
-import { getIssueLabels, getIssuesFromGithub } from './api';
+import { getIssueLabels, getIssuesFromGithub, Issue } from './api';
 import { injectStyles } from './contentStyle';
 console.log('Content script loaded');
 
@@ -74,13 +74,69 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+  
+chrome.storage.local.get('currentUrlInfo', async (result) => {
+  if (result.currentUrlInfo) {
+    console.log(result.currentUrlInfo.url);
+  }
+  
+  const rawIssues: any = await getIssuesFromGithub('freeCodeCamp', 'freeCodeCamp', 1);
+  const issues: Issue[] = rawIssues.map((issue: any) => ({
+    id: issue.html_url,
+    title: issue.title,
+    body: issue.body,
+  }));
+
+});
+
+
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.type === 'UPDATE_URL_INFO') {
+    const urlInfo = message.data;
+
+    console.log('📩 URL 정보 수신:', urlInfo);
+    const match = urlInfo.url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)/);
+
+    if (match) {
+      const owner = match[1];
+      const repo = match[2];
+      console.log('✅ owner:', owner);
+      console.log('✅ repo:', repo);
+    }
+  }
+  const values: string[] = Array.from(
+    document.querySelectorAll('span[class^="issue-item-module__defaultNumberDescription"]')
+  )
+    .map((parentSpan) => parentSpan.querySelector('span')?.textContent?.trim())
+    .filter((text): text is string => !!text);
+  
+  console.log('🎯 추출된 하위 span 텍스트들:', values);
+});
+
+
 
 // 깃허브 이슈 페이지 확인 및 라벨 변경 함수
-function checkAndModifyGitHubIssues() {
+async function checkAndModifyGitHubIssues() {
   // 깃허브 이슈 페이지인지 확인
   if (!window.location.href.includes('github.com') || !window.location.href.includes('/issues')) {
     return;
   }
+  let currentUrlInfo: string | null = null;
+  chrome.storage.local.get('currentUrlInfo', (result) => {
+    currentUrlInfo = result.currentUrlInfo;
+  });
+  console.log(currentUrlInfo);
+  
+    // 이미 이슈를 가져왔는지 확인하는 플래그
+    const hasLoadedIssues = document.querySelector('.custom-label');
+    if (hasLoadedIssues) {
+      return;
+    }
+
+  // const issues: Issue[] | null = await getIssuesFromGithub('freeCodeCamp', 'freeCodeCamp', 1);
+  const issues: Issue[] | null = null;
+  if (!issues) return;
+  console.log(issues);
 
   // IssueRow 요소들 찾기
   const issueRows = document.querySelectorAll('.IssueRow-module__row--XmR1f');
