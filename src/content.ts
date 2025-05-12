@@ -94,23 +94,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'UPDATE_URL_INFO') {
     const urlInfo = message.data;
 
-    console.log('📩 URL 정보 수신:', urlInfo);
-    const match = urlInfo.url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)/);
-
-    if (match) {
-      const owner = match[1];
-      const repo = match[2];
+    // 깃허브 이슈 리스트 페이지(https://github.com/{owner}/{repo}/issues)에서만 동작
+    const listMatch = urlInfo.url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/issues(\/?(\?.*)?)?$/);
+    if (listMatch) {
+      const owner = listMatch[1];
+      const repo = listMatch[2];
+      console.log('📩 URL 정보 수신:', urlInfo);
       console.log('✅ owner:', owner);
       console.log('✅ repo:', repo);
+
+      const values: string[] = Array.from(
+        document.querySelectorAll('span[class^="issue-item-module__defaultNumberDescription"]')
+      )
+        .map((parentSpan) => parentSpan.querySelector('span')?.textContent?.trim())
+        .filter((text): text is string => !!text);
+      console.log('🎯 추출된 하위 span 텍스트들:', values);
     }
   }
-  const values: string[] = Array.from(
-    document.querySelectorAll('span[class^="issue-item-module__defaultNumberDescription"]')
-  )
-    .map((parentSpan) => parentSpan.querySelector('span')?.textContent?.trim())
-    .filter((text): text is string => !!text);
-  
-  console.log('🎯 추출된 하위 span 텍스트들:', values);
 });
 
 
