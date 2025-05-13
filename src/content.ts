@@ -1,4 +1,4 @@
-import { getIssueLabels, getIssuesFromGithub, Issue } from './api';
+import { getIssueLabels, Issue, IssueLabel } from './api';
 import { injectStyles } from './contentStyle';
 console.log('Content script loaded');
 
@@ -75,20 +75,6 @@ if (document.readyState === 'loading') {
   init();
 }
   
-chrome.storage.local.get('currentUrlInfo', async (result) => {
-  if (result.currentUrlInfo) {
-    console.log(result.currentUrlInfo.url);
-  }
-  
-  const rawIssues: any = await getIssuesFromGithub('freeCodeCamp', 'freeCodeCamp', 1);
-  const issues: Issue[] = rawIssues.map((issue: any) => ({
-    id: issue.html_url,
-    title: issue.title,
-    body: issue.body,
-  }));
-
-});
-
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'UPDATE_URL_INFO') {
     const urlInfo = message.data;
@@ -106,11 +92,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         document.querySelectorAll('span[class^="issue-item-module__defaultNumberDescription"]')
       )
         .map((parentSpan) => parentSpan.querySelector('span')?.textContent?.trim())
-        .filter((text): text is string => !!text);
+        .filter((text): text is string => !!text)
+        .map((text) => text.replace('#', ''));
 
-      let issueUrls: string[] = [];
+      let issueUrls: Issue[] = [];
       values.forEach(value => {
-        issueUrls.push(`https://github.com/${owner}/${repo}/issues/${value}`);
+        issueUrls.push({
+          issueId: `https://github.com/${owner}/${repo}/issues/${value}`,
+        });
       });
 
       console.log('🎯 추출된 이슈 URL들:', issueUrls);
@@ -125,9 +114,12 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
 
       // 난이도 라벨을 li > h3 앞에 삽입하는 함수
-      async function labelIssuesBatch(issueUrls: string[]) {
-        for (const url of issueUrls) {
-          const match = url.match(/\/issues\/(#\d+)/);
+      async function labelIssuesBatch(issueUrls: Issue[]) {
+        const issueLabels: IssueLabel[] = await getIssueLabels(issueUrls);
+        console.log(issueLabels);
+        for (const issueLabel of issueLabels) {
+          console.log(issueLabel);
+          const match = issueLabel.issueId.match(/\/issues\/(\d+)/);
           if (!match) continue;
           const issueNumber = match[1];
           console.log(issueNumber);
@@ -142,34 +134,33 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           // 이미 라벨이 있으면 건너뜀
           if (titleH3.querySelector('.custom-label')) continue;
           // 난이도 라벨 생성
-          const tiers = ['easy', 'hard', 'unknown'];
-          const randomTier = tiers[Math.floor(Math.random() * tiers.length)];
+          const tier = issueLabel.difficulty;
+          console.log(tier);
           const newLabel = document.createElement('span');
+
           newLabel.className = 'Label custom-label custom-label-style';
-          const icon = randomTier === 'easy' ? '🧩' : randomTier === 'hard' ? '🔥' : '❓';
+          const icon = tier === 'easy' ? '🧩' : tier === 'hard' ? '🔥' : '❓';
           newLabel.innerHTML = `
             <span class="tier-icon">${icon}</span>
-            <span class="tier-text">${randomTier}</span>
+            <span class="tier-text">${tier}</span>
           `;
-          newLabel.style.backgroundColor = randomTier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
-                                         randomTier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
-          newLabel.style.color = randomTier === 'easy' ? '#43a047' : 
-                                randomTier === 'hard' ? '#e53935' : '#6e7781';
-          newLabel.style.borderColor = randomTier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
-                                      randomTier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
+          newLabel.style.backgroundColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
+                                         tier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
+          newLabel.style.color = tier === 'easy' ? '#43a047' : 
+                                tier === 'hard' ? '#e53935' : '#6e7781';
+          newLabel.style.borderColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
+                                      tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
           // h3의 첫 번째 자식 앞에 삽입
           titleH3.insertBefore(newLabel, titleH3.firstChild);
         }
       }
 
       // 전체 이슈 URL을 5개씩 나누어 순차 처리
-      async function labelAllIssues(issueUrls: string[]) {
+      async function labelAllIssues(issueUrls: Issue[]) {
         const batches = chunkArray(issueUrls, 5);
         for (const batch of batches) {
           console.log(batch);
           await labelIssuesBatch(batch);
-          // 필요시 약간의 딜레이
-          // await new Promise(res => setTimeout(res, 100));
         }
       }
 
