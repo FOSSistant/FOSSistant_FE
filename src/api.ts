@@ -1,11 +1,9 @@
 export interface Issue {
-    html_url: string;
-    title: string;
-    body: string;
+    issueId: string;
 }
 
 export interface IssueLabel {
-  id: number;
+  issueId: string;
   difficulty: string;
 }
 
@@ -17,7 +15,9 @@ export interface IssueGuide {
   caution: string;
 }
 
-// github로부터 이슈들 body 정보 가져오기
+// API 서버 주소 변수 선언
+const dev_server = process.env.REACT_APP_DEV_SERVER as string;// github로부터 이슈들 body 정보 가져오기
+
 export const getIssuesFromGithub = async (owner: string, repo: string, page: number): Promise<Issue[] | null> => {
   try {
     return await fetch(`https://api.github.com/repos/${owner}/${repo}/issues?state=open&sort=created&page=${page}`)
@@ -46,15 +46,19 @@ export const getIssueFromGithub = async (owner: string, repo: string, issueNumbe
   }
 };
 
-// 이슈들의 레이블 가져오기
+
 export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => {
   try {
-    const response = await fetch(`http://4.217.129.207:8080/issues`, {
+    console.log(issues);
+    const response = await fetch(`${dev_server}/issues`, {
       method: "POST",
-      body: JSON.stringify(issues),
+      body: JSON.stringify({ issues }),
+      headers: {
+        "Content-Type": "application/json"
+      },
     });
     const { result } = await response.json();
-    return result;
+    return result.results;
   } catch (error) {
     console.log(error);
     return [];
@@ -64,8 +68,11 @@ export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => 
 // 단일 이슈의의 가이드 가져오기
 export const getIssueGuide = async (issue: Issue): Promise<IssueGuide | null> => {
   try {
-    const response = await fetch(`http://4.217.129.207:8080/issue/guide`, {
+    const response = await fetch(`${dev_server}/issue/guide`, {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },    
       body: JSON.stringify(issue),
   });
     const { result } = await response.json();
