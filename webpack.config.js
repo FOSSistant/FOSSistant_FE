@@ -1,3 +1,4 @@
+require('dotenv').config();
 const path = require('path');
 const CopyPlugin = require('copy-webpack-plugin');
 const webpack = require('webpack');
@@ -51,7 +52,7 @@ const reactConfig = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify('production'),
+      'process.env.REACT_APP_DEV_SERVER': JSON.stringify(process.env.REACT_APP_DEV_SERVER)
     }),
   ],
   devtool: false,
@@ -93,6 +94,9 @@ const nonReactConfig = {
     extensions: ['.ts', '.js'],
   },
   plugins: [
+    new webpack.DefinePlugin({
+      'process.env.REACT_APP_DEV_SERVER': JSON.stringify(process.env.REACT_APP_DEV_SERVER)
+    }),  
     new CopyPlugin({
       patterns: [
         { from: 'public' }
