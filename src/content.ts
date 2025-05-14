@@ -1,6 +1,7 @@
 import { getIssueLabels, Issue, IssueLabel } from './api';
 import { injectStyles } from './contentStyle';
 console.log('Content script loaded');
+chrome.runtime.sendMessage({ type: 'CONTENT_SCRIPT_READY' });
 
 // 플로팅 버튼 생성 및 추가
 function createFloatingButton() {

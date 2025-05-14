@@ -7,6 +7,23 @@ chrome.runtime.onInstalled.addListener(() => {
   // 메시지 리스너
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message received:', message);
+
+  if (message.type === 'CONTENT_SCRIPT_READY') {
+    chrome.storage.local.get(['currentUrlInfo'], (result) => {
+      if (result.currentUrlInfo && sender.tab?.id !== undefined) {
+        chrome.tabs.sendMessage(sender.tab.id, {
+          type: 'UPDATE_URL_INFO',
+          data: result.currentUrlInfo
+        }, () => {
+          if (chrome.runtime.lastError) {
+            console.warn('초기 메시지 전송 실패:', chrome.runtime.lastError.message);
+          }
+        });
+      }
+    });
+    return;
+  }
+
   
   // URL 정보 요청에 대한 응답 처리
   if (message.type === 'GET_URL_INFO') {
