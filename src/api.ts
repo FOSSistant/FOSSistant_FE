@@ -68,12 +68,13 @@ export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => 
 // 단일 이슈의의 가이드 가져오기
 export const getIssueGuide = async (issue: Issue): Promise<IssueGuide | null> => {
   try {
-    const response = await fetch(`${dev_server}/issue/guide`, {
+    console.log(issue);
+    const response = await fetch(`${dev_server}/issues/guide`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },    
-      body: JSON.stringify(issue),
+      body: JSON.stringify({ issueId: issue.issueId }),
   });
     const { result } = await response.json();
     return result;
