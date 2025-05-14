@@ -5,6 +5,7 @@ import './index.css';
 import { IssueDetailInfo, IssueProps } from './components/IssueDetailInfo';
 import { IssueList } from './components/IssueList';
 import { TrendyRepos } from './components/TrendyRepos';
+import { getIssueGuide, IssueGuide } from './api';
 
 const SidePanel: React.FC = () => {
   const [currentUrl, setCurrentUrl] = useState<UrlInfo | null>(null);
@@ -12,7 +13,7 @@ const SidePanel: React.FC = () => {
   const [pageType, setPageType] = useState<'list' | 'detail' | null>(null);
   const [trendingRepos, setTrendingRepos] = useState<TrendingRepo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [issueInfo, setIssueInfo] = useState<IssueInfo | null>(null);
+  const [issueInfo, setIssueInfo] = useState<IssueGuide | null>(null);
 
   const dummyIssueInfo: IssueProps = {
     tags: ['이슈', '해결', '방법'],
@@ -20,50 +21,48 @@ const SidePanel: React.FC = () => {
     description: '이슈 설명',
     solution: '이슈 해결 방법',
     cautions: '이슈 주의 사항',
-    difficulty: '상',
+    difficulty: 'easy',
   };
   
-  useEffect(() => {
-    // 현재 URL 정보 로드
-    chrome.storage.local.get(['currentUrlInfo'], (result) => {
-      if (result.currentUrlInfo) {
-        setCurrentUrl(result.currentUrlInfo);
-        // URL을 기반으로 페이지 타입 결정
-        const url = result.currentUrlInfo.url;
-        if (url.endsWith('/issues')) {
-          setPageType('list');
-        } else if (/\/issues\/\d+$/.test(url)) {
-          setPageType('detail');
-          fetchIssueInfo(url);
-        } else {
-          setPageType(null);
-          fetchTrendingRepos();
-        }
-      }
-    });
+  // URL 처리 및 페이지 타입 설정 로직을 함수로 분리
+  const handleUrlUpdate = async (url: string) => {
+    if (url.endsWith('/issues')) {
+      setPageType('list');
+    } else if (/\/issues\/\d+$/.test(url)) {
+      setPageType('detail');
+      await fetchDetailInfo(url);
+    } else {
+      setPageType(null);
+      await fetchTrendingRepos();
+    }
+  };
 
-    // 테마 로드
+  // 테마 로드 함수
+  const loadTheme = () => {
     chrome.storage.sync.get(['theme'], (result) => {
       if (result.theme) {
         setTheme(result.theme);
       }
     });
+  };
+
+  useEffect(() => {
+    // 초기 데이터 로드
+    chrome.storage.local.get(['currentUrlInfo'], (result) => {
+      if (result.currentUrlInfo) {
+        setCurrentUrl(result.currentUrlInfo);
+        handleUrlUpdate(result.currentUrlInfo.url);
+      }
+    });
+
+    // 테마 로드
+    loadTheme();
 
     // 메시지 리스너
     const messageListener = (message: any) => {
       if (message.type === 'UPDATE_URL_INFO') {
         setCurrentUrl(message.data);
-        // URL을 기반으로 페이지 타입 결정
-        const url = message.data.url;
-        if (url.endsWith('/issues')) {
-          setPageType('list');
-        } else if (/\/issues\/\d+$/.test(url)) {
-          setPageType('detail');
-          fetchIssueInfo(url);
-        } else {
-          setPageType(null);
-          fetchTrendingRepos();
-        }
+        handleUrlUpdate(message.data.url);
       }
     };
 
@@ -74,24 +73,22 @@ const SidePanel: React.FC = () => {
     };
   }, []);
 
-  const fetchIssueInfo = async (url: string) => {
+  const fetchDetailInfo = async (url: string) => {
     setIsLoading(true);
     try {
       // URL에서 owner, repo, issue_number 추출
       const match = url.match(/github\.com\/([^\/]+)\/([^\/]+)\/issues\/(\d+)/);
+      console.log(match);
       if (!match) {
         throw new Error('Invalid issue URL');
       }
       
       const [, owner, repo, issueNumber] = match;
-      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/issues/${issueNumber}`);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data = await response.json();
-      setIssueInfo(data);
+      console.log(owner, repo, issueNumber);
+      const issueGuide: IssueGuide | null = await getIssueGuide({
+        issueId: `https://github.com/${owner}/${repo}/issues/${issueNumber}`
+      });
+      setIssueInfo(issueGuide);
     } catch (error) {
       console.error('Error fetching issue info:', error);
       setIssueInfo(null);
@@ -135,14 +132,6 @@ const SidePanel: React.FC = () => {
     chrome.storage.sync.set({ theme: newTheme });
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('ko-KR', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
   return (
     <div className={`sidepanel-container ${theme}`}>
       {/* 테마 토글 버튼 */}
@@ -177,11 +166,11 @@ const SidePanel: React.FC = () => {
           ) : issueInfo ? (
                 <IssueDetailInfo
                   tags={dummyIssueInfo.tags}
-                  title={dummyIssueInfo.title}
-                  description={dummyIssueInfo.description}
-                  solution={dummyIssueInfo.solution}
-                  cautions={dummyIssueInfo.cautions}
-                  difficulty={dummyIssueInfo.difficulty}
+                  title={issueInfo.title}
+                  description={issueInfo.description}
+                  solution={issueInfo.solution}
+                  cautions={issueInfo.caution}
+                  difficulty={issueInfo.difficulty as 'easy' | 'hard' | 'unknown'}
                 />
           ) : (
             <div className="error">이슈 정보를 불러올 수 없습니다.</div>
