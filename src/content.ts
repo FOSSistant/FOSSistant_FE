@@ -134,16 +134,21 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           const newLabel = document.createElement('span');
 
           newLabel.className = 'Label custom-label custom-label-style';
-          const icon = tier === 'easy' ? '🧩' : tier === 'hard' ? '🔥' : '❓';
+          const icon = tier === 'easy' ? '🧩' : 
+                      tier === 'medium' ? '⚙️' :
+                      tier === 'hard' ? '🔥' : '❓';
           newLabel.innerHTML = `
             <span class="tier-icon">${icon}</span>
             <span class="tier-text">${tier}</span>
           `;
           newLabel.style.backgroundColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
+                                         tier === 'medium' ? 'rgba(255, 152, 0, 0.1)' :
                                          tier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
           newLabel.style.color = tier === 'easy' ? '#43a047' : 
+                                tier === 'medium' ? '#f57c00' :
                                 tier === 'hard' ? '#e53935' : '#6e7781';
           newLabel.style.borderColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
+                                      tier === 'medium' ? 'rgba(255, 152, 0, 0.2)' :
                                       tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
           // h3의 첫 번째 자식 앞에 삽입
           titleH3.insertBefore(newLabel, titleH3.firstChild);
