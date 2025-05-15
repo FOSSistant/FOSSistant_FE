@@ -37,26 +37,20 @@ function createFloatingButton() {
   let isButtonEnabled = true;
   button.addEventListener('click', () => {
     if (!isButtonEnabled) return;
-    
-    try {
-      chrome.runtime.sendMessage({ type: 'TOGGLE_SIDEPANEL' }, (response) => {
-        if (chrome.runtime.lastError) {
-          console.log('Extension context invalidated, reloading...');
-          isButtonEnabled = false;
-          setTimeout(() => {
-            isButtonEnabled = true;
-            init();
-          }, 1000);
-        }
-      });
-    } catch (error) {
-      console.error('Error sending message:', error);
-      isButtonEnabled = false;
+    isButtonEnabled = false;
+
+    chrome.runtime.sendMessage({ type: 'TOGGLE_SIDEPANEL' }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.log('사이드 패널 열기 실패:', chrome.runtime.lastError.message);
+      } else if (!response?.success) {
+        console.log('사이드 패널 열기 실패:', response?.error || '알 수 없는 에러');
+      }
+      
+      // 1초 후에 버튼 다시 활성화
       setTimeout(() => {
         isButtonEnabled = true;
-        init();
       }, 1000);
-    }
+    });
   });
 
   container.appendChild(button);
