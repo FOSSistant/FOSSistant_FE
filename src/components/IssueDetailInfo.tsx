@@ -8,7 +8,7 @@ export interface IssueProps {
   description: string;
   solution: string;
   cautions: string;
-  difficulty: 'easy' | 'medium' | 'hard' | 'unknown';
+  difficulty: 'easy' | 'medium' | 'hard' | 'misc';
 }
 
 export const IssueDetailInfo = ({
