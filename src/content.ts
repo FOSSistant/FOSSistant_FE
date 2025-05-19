@@ -110,62 +110,164 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       // 난이도 라벨을 li > h3 앞에 삽입하는 함수
       async function labelIssuesBatch(issueUrls: Issue[]) {
-        const issueLabels: IssueLabel[] = await getIssueLabels(issueUrls);
-        console.log(issueLabels);
-        for (const issueLabel of issueLabels) {
-          console.log(issueLabel);
-          const match = issueLabel.issueId.match(/\/issues\/(\d+)/);
-          if (!match) continue;
-          const issueNumber = match[1];
-          console.log(issueNumber);
-          // aria-label에 #이슈번호가 포함된 li 태그 찾기
-          const li = Array.from(document.querySelectorAll('li[aria-label]')).find(
-            (el) => el.getAttribute('aria-label')?.includes(`${issueNumber}`)
-          ) as HTMLElement | undefined;
-          console.log(li);
-          if (!li) continue;
-          const titleH3 = li.querySelector('h3');
-          if (!titleH3) continue;
-          // 이미 라벨이 있으면 건너뜀
-          if (titleH3.querySelector('.custom-label')) continue;
-          // 난이도 라벨 생성
-          const tier = issueLabel.difficulty;
-          console.log(tier);
-          const newLabel = document.createElement('span');
+        // 로딩 표시 추가
+        const loadingLabel = document.createElement('div');
+        loadingLabel.className = 'loading-label';
+        loadingLabel.innerHTML = `
+          <div class="loading-spinner"></div>
+          <span>라벨 로딩 중...</span>
+        `;
+        document.body.appendChild(loadingLabel);
 
-          newLabel.className = 'Label custom-label custom-label-style';
-          const icon = tier === 'easy' ? '🧩' : 
-                      tier === 'medium' ? '⚙️' :
-                      tier === 'hard' ? '🔥' : '❓';
-          newLabel.innerHTML = `
-            <span class="tier-icon">${icon}</span>
-            <span class="tier-text">${tier}</span>
-          `;
-          newLabel.style.backgroundColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
-                                         tier === 'medium' ? 'rgba(255, 152, 0, 0.1)' :
-                                         tier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
-          newLabel.style.color = tier === 'easy' ? '#43a047' : 
-                                tier === 'medium' ? '#f57c00' :
-                                tier === 'hard' ? '#e53935' : '#6e7781';
-          newLabel.style.borderColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
-                                      tier === 'medium' ? 'rgba(255, 152, 0, 0.2)' :
-                                      tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
-          // h3의 첫 번째 자식 앞에 삽입
-          titleH3.insertBefore(newLabel, titleH3.firstChild);
+        try {
+          if (!issueUrls || issueUrls.length === 0) {
+            throw new Error('이슈 URL이 없습니다.');
+          }
+
+          const issueLabels: IssueLabel[] = await getIssueLabels(issueUrls);
+          if (!issueLabels || !Array.isArray(issueLabels)) {
+            throw new Error('이슈 라벨 정보를 가져오는데 실패했습니다.');
+          }
+
+          console.log(issueLabels);
+          for (const issueLabel of issueLabels) {
+            try {
+              if (!issueLabel || !issueLabel.issueId) {
+                console.warn('잘못된 이슈 라벨 데이터:', issueLabel);
+                continue;
+              }
+
+              const match = issueLabel.issueId.match(/\/issues\/(\d+)/);
+              if (!match) {
+                console.warn('이슈 번호를 찾을 수 없습니다:', issueLabel.issueId);
+                continue;
+              }
+
+              const issueNumber = match[1];
+              console.log(issueNumber);
+
+              // aria-label에 #이슈번호가 포함된 li 태그 찾기
+              const li = Array.from(document.querySelectorAll('li[aria-label]')).find(
+                (el) => el.getAttribute('aria-label')?.includes(`${issueNumber}`)
+              ) as HTMLElement | undefined;
+
+              if (!li) {
+                console.warn('이슈 요소를 찾을 수 없습니다:', issueNumber);
+                continue;
+              }
+
+              const titleH3 = li.querySelector('h3');
+              if (!titleH3) {
+                console.warn('이슈 제목 요소를 찾을 수 없습니다:', issueNumber);
+                continue;
+              }
+
+              // 이미 라벨이 있으면 건너뜀
+              if (titleH3.querySelector('.custom-label')) {
+                console.log('이미 라벨이 있는 이슈:', issueNumber);
+                continue;
+              }
+
+              // 난이도 라벨 생성
+              const tier = issueLabel.difficulty;
+              if (!tier) {
+                console.warn('난이도 정보가 없습니다:', issueNumber);
+                continue;
+              }
+
+              console.log(tier);
+              const newLabel = document.createElement('span');
+
+              newLabel.className = 'Label custom-label custom-label-style';
+              const icon = tier === 'easy' ? '🧩' : 
+                          tier === 'medium' ? '⚙️' :
+                          tier === 'hard' ? '🔥' : '❓';
+              newLabel.innerHTML = `
+                <span class="tier-icon">${icon}</span>
+                <span class="tier-text">${tier}</span>
+              `;
+              newLabel.style.backgroundColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
+                                             tier === 'medium' ? 'rgba(255, 152, 0, 0.1)' :
+                                             tier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
+              newLabel.style.color = tier === 'easy' ? '#43a047' : 
+                                    tier === 'medium' ? '#f57c00' :
+                                    tier === 'hard' ? '#e53935' : '#6e7781';
+              newLabel.style.borderColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
+                                          tier === 'medium' ? 'rgba(255, 152, 0, 0.2)' :
+                                          tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
+
+              // h3의 첫 번째 자식 앞에 삽입
+              titleH3.insertBefore(newLabel, titleH3.firstChild);
+            } catch (error) {
+              console.error('개별 이슈 라벨 처리 중 에러:', error);
+              continue; // 개별 이슈 처리 실패 시 다음 이슈로 계속 진행
+            }
+          }
+        } catch (error) {
+          console.error('라벨 처리 중 에러 발생:', error);
+          // 에러 메시지 표시
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'error-message';
+          errorMessage.textContent = '라벨 처리 중 오류가 발생했습니다.';
+          document.body.appendChild(errorMessage);
+          setTimeout(() => errorMessage.remove(), 3000);
+        } finally {
+          // 로딩 표시 제거
+          loadingLabel.remove();
         }
       }
 
       // 전체 이슈 URL을 5개씩 나누어 순차 처리
       async function labelAllIssues(issueUrls: Issue[]) {
-        const batches = chunkArray(issueUrls, 5);
-        for (const batch of batches) {
-          console.log(batch);
-          await labelIssuesBatch(batch);
+        if (!issueUrls || issueUrls.length === 0) {
+          console.warn('처리할 이슈가 없습니다.');
+          return;
+        }
+
+        try {
+          const batches = chunkArray(issueUrls, 5);
+          for (const batch of batches) {
+            console.log('배치 처리 시작:', batch);
+            await labelIssuesBatch(batch);
+          }
+        } catch (error) {
+          console.error('전체 이슈 처리 중 에러 발생:', error);
+          // 에러 메시지 표시
+          const errorMessage = document.createElement('div');
+          errorMessage.className = 'error-message';
+          errorMessage.textContent = '이슈 처리 중 오류가 발생했습니다.';
+          document.body.appendChild(errorMessage);
+          setTimeout(() => errorMessage.remove(), 3000);
         }
       }
 
       // 라벨링 실행
-      labelAllIssues(issueUrls);
+      (async () => {
+        try {
+          await labelAllIssues(issueUrls);
+        } catch (error: unknown) {
+          console.error('라벨링 실행 중 에러 발생:', error);
+          // 확장 프로그램 컨텍스트 무효화 에러 처리
+          if (error instanceof Error && error.message === 'Extension context invalidated.') {
+            const errorMessage = document.createElement('div');
+            errorMessage.className = 'error-message';
+            errorMessage.textContent = '확장 프로그램을 자동으로 새로고침합니다...';
+            document.body.appendChild(errorMessage);
+            
+            // 1초 후 자동 새로고침
+            setTimeout(() => {
+              try {
+                chrome.runtime.reload();
+              } catch (reloadError) {
+                console.error('자동 새로고침 실패:', reloadError);
+                errorMessage.textContent = '확장 프로그램을 수동으로 새로고침해주세요.';
+                setTimeout(() => errorMessage.remove(), 3000);
+              }
+            }, 1000);
+            return;
+          }
+        }
+      })();
     }
   }
 });
