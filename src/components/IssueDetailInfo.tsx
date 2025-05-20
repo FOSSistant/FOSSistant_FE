@@ -56,7 +56,7 @@ export const IssueDetailInfo = ({
       <h2 className="text-2xl font-bold text-white">{title}</h2>
 
       {/* 난이도 */}
-      <div className="text-sm text-gray-400">예측 난이도: {difficulty}</div>
+      <div className="text-sm text-gray-400">예측 난이도: {getDifficultyInKorean(difficulty)}</div>
 
       {/* 설명 */}
       <div>
@@ -67,7 +67,7 @@ export const IssueDetailInfo = ({
           {showDesc ? '▾ 이슈에 대한 설명' : '▸ 이슈에 대한 설명'}
         </button>
         {showDesc && (
-          <div className="mt-2 bg-[#3a3a3a] text-sm p-4 rounded-lg border border-[#555] text-[#dcdcdc]">
+          <div className="mt-2 bg-[#3a3a3a] text-sm p-4 rounded-lg border border-[#555] text-[#dcdcdc] whitespace-pre-wrap">
             {description}
           </div>
         )}
@@ -82,7 +82,7 @@ export const IssueDetailInfo = ({
           {showGuide ? '▾ 해결 방식에 대한 가이드' : '▸ 해결 방식에 대한 가이드'}
         </button>
         {showGuide && (
-          <div className="mt-2 bg-[#3a3a3a] text-sm p-4 rounded-lg border border-[#555] text-[#dcdcdc]">
+          <div className="mt-2 bg-[#3a3a3a] text-sm p-4 rounded-lg border border-[#555] text-[#dcdcdc] whitespace-pre-wrap">
             {solution}
           </div>
         )}
@@ -97,7 +97,7 @@ export const IssueDetailInfo = ({
           {showCaution ? '▾ 유의점' : '▸ 유의점'}
         </button>
         {showCaution && (
-          <div className="mt-2 bg-[#3a3a3a] text-sm p-4 rounded-lg border border-[#555] text-[#dcdcdc]">
+          <div className="mt-2 bg-[#3a3a3a] text-sm p-4 rounded-lg border border-[#555] text-[#dcdcdc] whitespace-pre-wrap">
             {cautions}
           </div>
         )}
