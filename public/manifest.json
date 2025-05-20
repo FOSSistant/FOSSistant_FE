@@ -15,10 +15,10 @@
   "action": {
     "default_title": "사이드 패널 열기",
     "default_icon": {
-      "16": "icons/icon16.png",
-      "32": "icons/icon32.png",
-      "48": "icons/icon48.png",
-      "128": "icons/icon128.png"
+      "16": "icons/github16.png",
+      "32": "icons/github32.png",
+      "48": "icons/github48.png",
+      "128": "icons/github128.png"
     }
   },
   "background": {
