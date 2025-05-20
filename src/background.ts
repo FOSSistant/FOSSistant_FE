@@ -3,54 +3,54 @@ import { UrlInfo } from './types';
 // Service Worker
 chrome.runtime.onInstalled.addListener(() => {
   console.log('Extension installed');
-  
-  // 메시지 리스너
-  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    console.log('Message received:', message);
+});
+// 메시지 리스너
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('Message received:', message);
 
-    if (message.type === 'CONTENT_SCRIPT_READY') {
-      chrome.storage.local.get(['currentUrlInfo'], (result) => {
-        if (result.currentUrlInfo && sender.tab?.id !== undefined) {
-          chrome.tabs.sendMessage(sender.tab.id, {
-            type: 'UPDATE_URL_INFO',
-            data: result.currentUrlInfo
-          }, () => {
-            if (chrome.runtime.lastError) {
-              console.warn('초기 메시지 전송 실패:', chrome.runtime.lastError.message);
-            }
-          });
-        }
-      });
-      return;
-    }
-
-    // URL 정보 요청에 대한 응답 처리
-    if (message.type === 'GET_URL_INFO') {
-      chrome.storage.local.get(['currentUrlInfo'], (result) => {
-        sendResponse(result.currentUrlInfo || null);
-      });
-      return true; // 비동기 응답을 위해 true 반환
-    }
-
-    // 사이드패널 토글 메시지 처리
-    if (message.type === 'TOGGLE_SIDEPANEL') {
-      if (sender.tab?.windowId) {
-        chrome.sidePanel.open({ windowId: sender.tab.windowId })
-          .then(() => {
-            console.log('사이드 패널 열기 성공');
-            sendResponse({ success: true });
-          })
-          .catch((error) => {
-            console.error('사이드 패널 열기 실패:', error);
-            sendResponse({ success: false, error: error.message });
-          });
-        return true; // 비동기 응답을 위해 true 반환
-      } else {
-        console.error('윈도우 ID를 찾을 수 없음');
-        sendResponse({ success: false, error: 'Window ID not found' });
+  if (message.type === 'CONTENT_SCRIPT_READY') {
+    chrome.storage.local.get(['currentUrlInfo'], (result) => {
+      if (result.currentUrlInfo && sender.tab?.id !== undefined) {
+        chrome.tabs.sendMessage(sender.tab.id, {
+          type: 'UPDATE_URL_INFO',
+          data: result.currentUrlInfo
+        }, () => {
+          if (chrome.runtime.lastError) {
+            console.warn('초기 메시지 전송 실패:', chrome.runtime.lastError.message);
+          }
+        });
       }
+    });
+    return;
+  }
+
+  // URL 정보 요청에 대한 응답 처리
+  if (message.type === 'GET_URL_INFO') {
+    chrome.storage.local.get(['currentUrlInfo'], (result) => {
+      sendResponse(result.currentUrlInfo || null);
+    });
+    return true; // 비동기 응답을 위해 true 반환
+  }
+
+  // 사이드패널 토글 메시지 처리
+  if (message.type === 'TOGGLE_SIDEPANEL') {
+    if (sender.tab?.windowId) {
+      chrome.sidePanel.open({ windowId: sender.tab.windowId })
+        .then(() => {
+          console.log('사이드 패널 열기 성공');
+          sendResponse({ success: true });
+        })
+        .catch((error) => {
+          console.error('사이드 패널 열기 실패:', error);
+          sendResponse({ success: false, error: error.message });
+        });
+      return true; // 비동기 응답을 위해 true 반환
+    } else {
+      console.error('윈도우 ID를 찾을 수 없음');
+      sendResponse({ success: false, error: 'Window ID not found' });
     }
-  });
+  }
+});
 
 const debounceMap: { [tabId: number]: ReturnType<typeof setTimeout> } = {};
 const lastUrlMap: { [tabId: number]: string } = {};
@@ -109,13 +109,30 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 chrome.webNavigation.onHistoryStateUpdated.addListener(async (details) => {
   await updateUrlInfo(details.tabId);
 });
-
-// 확장 프로그램 아이콘 클릭 시 사이드패널 열기
 chrome.action.onClicked.addListener((tab) => {
-  if (tab.windowId) {
+  if (!tab.id || !tab.windowId) return;
+
+  // 먼저 옵션 설정
+  chrome.sidePanel.setOptions({
+    tabId: tab.id,
+    path: "sidepanel.html",
+    enabled: true
+  }, () => {
+    if (chrome.runtime.lastError) {
+      console.error("setOptions 실패:", chrome.runtime.lastError.message);
+      return;
+    }
+
+    // 설정 완료되면 패널 열기
     chrome.sidePanel.open({
       windowId: tab.windowId
+    }, () => {
+      if (chrome.runtime.lastError) {
+        console.error("open 실패:", chrome.runtime.lastError.message);
+      } else {
+        console.log("사이드패널 열림!");
+      }
     });
-  }
-});
+  });
+  return true;
 });
