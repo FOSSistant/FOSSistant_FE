@@ -129,15 +129,11 @@ const SidePanel: React.FC = () => {
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light';
     setTheme(newTheme);
-    chrome.storage.sync.set({ theme: newTheme });
+    chrome.storage.sync.set({ theme: 'dark' });
   };
 
   return (
     <div className={`sidepanel-container ${theme}`}>
-      {/* 테마 토글 버튼 */}
-      <button className="theme-toggle-button" onClick={toggleTheme}>
-        {theme === 'light' ? '🌙' : '☀️'}
-      </button>
 
       {/* 현재 페이지 정보 */}
       <div className="current-page">
