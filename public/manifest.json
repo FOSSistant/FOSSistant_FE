@@ -13,7 +13,13 @@
   ],
   "host_permissions": ["<all_urls>"],
   "action": {
-    "default_title": "사이드 패널 열기"
+    "default_title": "사이드 패널 열기",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
@@ -26,6 +32,9 @@
       "all_frames": true
     }
   ],
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
+  },
   "side_panel": {
     "default_path": "sidepanel.html"
   },
