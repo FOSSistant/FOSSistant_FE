@@ -11,6 +11,21 @@ export interface IssueProps {
   difficulty: 'easy' | 'medium' | 'hard' | 'misc';
 }
 
+const getDifficultyInKorean = (difficulty: IssueProps['difficulty']): string => {
+  switch (difficulty) {
+    case 'easy':
+      return '쉬움';
+    case 'medium':
+      return '보통';
+    case 'hard':
+      return '어려움';
+    case 'misc':
+      return '기타';
+    default:
+      return '알 수 없음';
+  }
+};
+
 export const IssueDetailInfo = ({
   tags,
   title,
