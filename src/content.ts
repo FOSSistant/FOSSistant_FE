@@ -69,6 +69,9 @@ if (document.readyState === 'loading') {
 } else {
   init();
 }
+
+
+// DOM이 로드되면 초기화
   
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'UPDATE_URL_INFO') {
@@ -110,74 +113,75 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
       // 난이도 라벨을 li > h3 앞에 삽입하는 함수
       async function labelIssuesBatch(issueUrls: Issue[]) {
-        // 로딩 표시 추가
-        const loadingLabel = document.createElement('div');
-        loadingLabel.className = 'loading-label';
-        loadingLabel.innerHTML = `
-          <div class="loading-spinner"></div>
-          <span>라벨 로딩 중...</span>
-        `;
-        document.body.appendChild(loadingLabel);
-
         try {
           if (!issueUrls || issueUrls.length === 0) {
             throw new Error('이슈 URL이 없습니다.');
           }
 
+          // 1. 먼저 모든 이슈에 로딩 라벨 추가
+          for (const issueUrl of issueUrls) {
+            const match = issueUrl.issueId.match(/\/issues\/(\d+)/);
+            if (!match) continue;
+
+            const issueNumber = match[1];
+            const li = Array.from(document.querySelectorAll('li[aria-label]')).find(
+              (el) => el.getAttribute('aria-label')?.includes(`${issueNumber}`)
+            ) as HTMLElement | undefined;
+
+            if (!li) continue;
+
+            const titleH3 = li.querySelector('h3');
+            if (!titleH3 || titleH3.querySelector('.custom-label')) continue;
+
+            // 로딩 라벨 생성
+            const loadingLabel = document.createElement('span');
+            loadingLabel.className = 'Label custom-label custom-label-style loading-label';
+            loadingLabel.innerHTML = `
+              <div class="loading-spinner"></div>
+              <span>로딩 중...</span>
+            `;
+            loadingLabel.style.backgroundColor = 'rgba(110, 119, 129, 0.1)';
+            loadingLabel.style.color = '#6e7781';
+            loadingLabel.style.borderColor = 'rgba(110, 119, 129, 0.2)';
+
+            titleH3.insertBefore(loadingLabel, titleH3.firstChild);
+          }
+
+          // 2. 실제 라벨 정보 가져오기
           const issueLabels: IssueLabel[] = await getIssueLabels(issueUrls);
           if (!issueLabels || !Array.isArray(issueLabels)) {
             throw new Error('이슈 라벨 정보를 가져오는데 실패했습니다.');
           }
 
-          console.log(issueLabels);
+          // 3. 로딩 라벨을 실제 라벨로 교체
           for (const issueLabel of issueLabels) {
             try {
-              if (!issueLabel || !issueLabel.issueId) {
-                console.warn('잘못된 이슈 라벨 데이터:', issueLabel);
-                continue;
-              }
+              if (!issueLabel || !issueLabel.issueId) continue;
 
               const match = issueLabel.issueId.match(/\/issues\/(\d+)/);
-              if (!match) {
-                console.warn('이슈 번호를 찾을 수 없습니다:', issueLabel.issueId);
-                continue;
-              }
+              if (!match) continue;
 
               const issueNumber = match[1];
-              console.log(issueNumber);
-
-              // aria-label에 #이슈번호가 포함된 li 태그 찾기
               const li = Array.from(document.querySelectorAll('li[aria-label]')).find(
                 (el) => el.getAttribute('aria-label')?.includes(`${issueNumber}`)
               ) as HTMLElement | undefined;
 
-              if (!li) {
-                console.warn('이슈 요소를 찾을 수 없습니다:', issueNumber);
-                continue;
-              }
+              if (!li) continue;
 
               const titleH3 = li.querySelector('h3');
-              if (!titleH3) {
-                console.warn('이슈 제목 요소를 찾을 수 없습니다:', issueNumber);
-                continue;
+              if (!titleH3) continue;
+
+              // 기존 로딩 라벨 제거
+              const existingLabel = titleH3.querySelector('.custom-label');
+              if (existingLabel) {
+                existingLabel.remove();
               }
 
-              // 이미 라벨이 있으면 건너뜀
-              if (titleH3.querySelector('.custom-label')) {
-                console.log('이미 라벨이 있는 이슈:', issueNumber);
-                continue;
-              }
-
-              // 난이도 라벨 생성
+              // 실제 라벨 생성
               const tier = issueLabel.difficulty;
-              if (!tier) {
-                console.warn('난이도 정보가 없습니다:', issueNumber);
-                continue;
-              }
+              if (!tier) continue;
 
-              console.log(tier);
               const newLabel = document.createElement('span');
-
               newLabel.className = 'Label custom-label custom-label-style';
               const icon = tier === 'easy' ? '🧩' : 
                           tier === 'medium' ? '⚙️' :
@@ -196,24 +200,19 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                                           tier === 'medium' ? 'rgba(255, 152, 0, 0.2)' :
                                           tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
 
-              // h3의 첫 번째 자식 앞에 삽입
               titleH3.insertBefore(newLabel, titleH3.firstChild);
             } catch (error) {
               console.error('개별 이슈 라벨 처리 중 에러:', error);
-              continue; // 개별 이슈 처리 실패 시 다음 이슈로 계속 진행
+              continue;
             }
           }
         } catch (error) {
           console.error('라벨 처리 중 에러 발생:', error);
-          // 에러 메시지 표시
           const errorMessage = document.createElement('div');
           errorMessage.className = 'error-message';
           errorMessage.textContent = '라벨 처리 중 오류가 발생했습니다.';
           document.body.appendChild(errorMessage);
           setTimeout(() => errorMessage.remove(), 3000);
-        } finally {
-          // 로딩 표시 제거
-          loadingLabel.remove();
         }
       }
 
