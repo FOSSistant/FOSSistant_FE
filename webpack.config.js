@@ -7,7 +7,10 @@ const webpack = require('webpack');
 const reactConfig = {
   mode: 'production',
   entry: {
-    sidepanel: './src/sidepanel.tsx'
+    sidepanel: './src/sidepanel.tsx',
+    background: './src/background.ts',
+    content: './src/content.ts',
+    newtab: './src/newtab.tsx',
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
@@ -53,6 +56,12 @@ const reactConfig = {
   plugins: [
     new webpack.DefinePlugin({
       'process.env.REACT_APP_DEV_SERVER': JSON.stringify(process.env.REACT_APP_DEV_SERVER)
+    }),
+    new CopyPlugin({
+      patterns: [
+        { from: "public", to: "." },
+        { from: "public/icons", to: "icons" }
+      ],
     }),
   ],
   devtool: false,
