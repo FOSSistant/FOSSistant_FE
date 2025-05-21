@@ -9,7 +9,7 @@ import { getIssueGuide, IssueGuide } from './api';
 
 const SidePanel: React.FC = () => {
   const [currentUrl, setCurrentUrl] = useState<UrlInfo | null>(null);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
   const [pageType, setPageType] = useState<'list' | 'detail' | null>(null);
   const [trendingRepos, setTrendingRepos] = useState<TrendingRepo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
