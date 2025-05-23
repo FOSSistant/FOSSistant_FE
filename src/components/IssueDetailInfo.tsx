@@ -9,6 +9,7 @@ export interface IssueProps {
   solution: string;
   cautions: string;
   difficulty: 'easy' | 'medium' | 'hard' | 'misc';
+  isLoading?: boolean;
 }
 
 const getDifficultyInKorean = (difficulty: IssueProps['difficulty']): string => {
@@ -26,6 +27,32 @@ const getDifficultyInKorean = (difficulty: IssueProps['difficulty']): string => 
   }
 };
 
+// 로딩 컴포넌트
+const LoadingSkeleton = () => (
+  <div className="p-6 rounded-2xl shadow-lg border border-[#444] text-[#e0e0e0] space-y-4 animate-pulse" style={{ backgroundColor: '#2d2d2d' }}>
+    {/* 태그 스켈레톤 */}
+    <div className="flex flex-wrap gap-2">
+      {[1, 2, 3].map((idx) => (
+        <div key={idx} className="h-6 w-16 bg-[#3a3a3a] rounded-full"></div>
+      ))}
+    </div>
+
+    {/* 제목 스켈레톤 */}
+    <div className="h-8 w-3/4 bg-[#3a3a3a] rounded"></div>
+
+    {/* 난이도 스켈레톤 */}
+    <div className="h-4 w-32 bg-[#3a3a3a] rounded"></div>
+
+    {/* 설명 섹션 스켈레톤 */}
+    {[1, 2, 3].map((idx) => (
+      <div key={idx} className="space-y-2">
+        <div className="h-5 w-48 bg-[#3a3a3a] rounded"></div>
+        <div className="h-20 bg-[#3a3a3a] rounded-lg"></div>
+      </div>
+    ))}
+  </div>
+);
+
 export const IssueDetailInfo = ({
   tags,
   title,
@@ -33,10 +60,15 @@ export const IssueDetailInfo = ({
   solution,
   cautions,
   difficulty,
+  isLoading = false,
 }: IssueProps) => {
   const [showDesc, setShowDesc] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
   const [showCaution, setShowCaution] = useState(false);
+
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <div
