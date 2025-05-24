@@ -80,8 +80,8 @@ const updateUrlInfo = async (tabId: number) => {
       
       // 메시지 전송 시도
       try {
-        await chrome.tabs.sendMessage(tabId, { type: 'UPDATE_URL_INFO', data: urlInfo });
-        await chrome.runtime.sendMessage({ type: 'UPDATE_URL_INFO', data: urlInfo });
+        chrome.tabs.sendMessage(tabId, { type: 'UPDATE_URL_INFO', data: urlInfo });
+        chrome.runtime.sendMessage({ type: 'UPDATE_URL_INFO', data: urlInfo });
       } catch (error) {
         console.log('메시지 전송 실패 (수신자가 없음):', error);
       }
