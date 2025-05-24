@@ -121,17 +121,22 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           // 1. 먼저 모든 이슈에 로딩 라벨 추가
           for (const issueUrl of issueUrls) {
             const match = issueUrl.issueId.match(/\/issues\/(\d+)/);
-            if (!match) continue;
-
+            if (!match) {
+              console.log('match이슈 URL이 없습니다.', issueUrl);
+              continue;
+            }
+            
             const issueNumber = match[1];
-            const li = Array.from(document.querySelectorAll('li[aria-label]')).find(
-              (el) => el.getAttribute('aria-label')?.includes(`${issueNumber}`)
-            ) as HTMLElement | undefined;
 
-            if (!li) continue;
+            const titleH3 = Array.from(document.querySelectorAll('a')).find(a => 
+              Array.from(a.classList).some(cls => cls.startsWith('IssuePullRequestTitle')) &&
+              a.getAttribute('href')?.match(/\d+$/)?.[0] === issueNumber
+            );
 
-            const titleH3 = li.querySelector('h3');
-            if (!titleH3 || titleH3.querySelector('.custom-label')) continue;
+            if (!titleH3) {
+              console.log('titleH3 이슈 URL이 없습니다.', issueUrl);
+              continue;
+            }
 
             // 로딩 라벨 생성
             const loadingLabel = document.createElement('span');
@@ -162,14 +167,16 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
               if (!match) continue;
 
               const issueNumber = match[1];
-              const li = Array.from(document.querySelectorAll('li[aria-label]')).find(
-                (el) => el.getAttribute('aria-label')?.includes(`${issueNumber}`)
-              ) as HTMLElement | undefined;
 
-              if (!li) continue;
+              const titleH3 = Array.from(document.querySelectorAll('a')).find(a => 
+                Array.from(a.classList).some(cls => cls.startsWith('IssuePullRequestTitle')) &&
+                a.getAttribute('href')?.match(/\d+$/)?.[0] === issueNumber
+              );
 
-              const titleH3 = li.querySelector('h3');
-              if (!titleH3) continue;
+              if (!titleH3) {
+                console.log('titleH3 이슈 URL이 없습니다.');
+                continue;
+              }
 
               // 기존 로딩 라벨 제거
               const existingLabel = titleH3.querySelector('.custom-label');
@@ -224,7 +231,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
 
         try {
-          const batches = chunkArray(issueUrls, 5);
+          const batches = chunkArray(issueUrls, 30);
           for (const batch of batches) {
             console.log('배치 처리 시작:', batch);
             await labelIssuesBatch(batch);
