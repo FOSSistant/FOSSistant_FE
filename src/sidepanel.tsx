@@ -157,20 +157,15 @@ const SidePanel: React.FC = () => {
       {/* 이슈 상세 정보 */}
       {pageType === 'detail' && (
         <div className="issue-detail">
-          {isLoading ? (
-            <div className="loading">로딩 중...</div>
-          ) : issueInfo ? (
-                <IssueDetailInfo
-                  tags={dummyIssueInfo.tags}
-                  title={issueInfo.title}
-                  description={issueInfo.description}
-                  solution={issueInfo.solution}
-                  cautions={issueInfo.caution}
-                  difficulty={issueInfo.difficulty as 'easy' | 'medium' | 'hard' | 'misc'}
-                />
-          ) : (
-            <div className="error">이슈 정보를 불러올 수 없습니다.</div>
-          )}
+          <IssueDetailInfo
+            tags={dummyIssueInfo.tags}
+            title={issueInfo?.title || ''}
+            description={issueInfo?.description || ''}
+            solution={issueInfo?.solution || ''}
+            cautions={issueInfo?.caution || ''}
+            difficulty={issueInfo?.difficulty as 'easy' | 'medium' | 'hard' | 'misc' || 'misc'}
+            isLoading={isLoading}
+          />
         </div>
       )}
 
