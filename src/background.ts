@@ -1,12 +1,19 @@
+import { requestGitHubCode } from './githubAuth';
 import { UrlInfo } from './types';
 
 // Service Worker
 chrome.runtime.onInstalled.addListener(() => {
+
   console.log('Extension installed');
 });
+
+
 // 메시지 리스너
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   console.log('Message received:', message);
+  if (message.type === 'REQUEST_GITHUB_CODE') {
+    requestGitHubCode();
+  }
 
   if (message.type === 'CONTENT_SCRIPT_READY') {
     chrome.storage.local.get(['currentUrlInfo'], (result) => {
