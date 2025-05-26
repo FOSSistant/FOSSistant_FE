@@ -54,3 +54,9 @@ export interface TokenResponse {
 export interface TokenRequest {
   githubCode: string;
 }
+
+export interface UserProfile {
+  nickname: string;
+  profileImage: string;
+  level: "BEGINNER" | "EXPERIENCED";
+}
