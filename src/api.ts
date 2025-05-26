@@ -1,4 +1,4 @@
-import { fetchWithInterceptors } from "./api/fetchWithInterceptors ";
+import { fetchWithInterceptors } from "./config/fetchWithInterceptors ";
 
 export interface Issue {
     issueId: string;
