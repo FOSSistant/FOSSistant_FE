@@ -9,10 +9,11 @@ chrome.runtime.onInstalled.addListener(() => {
 
 
 // 메시지 리스너
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
   console.log('Message received:', message);
   if (message.type === 'REQUEST_GITHUB_CODE') {
-    requestGitHubCode();
+    const result = await requestGitHubCode();
+    sendResponse({ success: result });
   }
 
   if (message.type === 'CONTENT_SCRIPT_READY') {
