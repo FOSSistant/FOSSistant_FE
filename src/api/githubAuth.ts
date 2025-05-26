@@ -1,4 +1,5 @@
-import { TokenRequest, TokenResponse } from "../types";
+import { BASE_URL, fetchWithInterceptors } from "../config/fetchWithInterceptors ";
+import { TokenRequest, TokenResponse, UserProfile } from "../types";
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID as string;
 const REDIRECT_URI = `https://${chrome.runtime.id}.chromiumapp.org/`;
@@ -42,7 +43,7 @@ export async function requestGitHubCode() {
 
 export const postGithubCode = async (tokenRequest: TokenRequest): Promise<TokenResponse> => {
   try {
-    const response = await fetch(`${dev_server}/auth/github`, {
+    const response = await fetch(`${BASE_URL}/auth/github`, {
       method: "POST",
       body: JSON.stringify({ githubCode: tokenRequest.githubCode }),
       headers: {
@@ -56,3 +57,11 @@ export const postGithubCode = async (tokenRequest: TokenRequest): Promise<TokenR
     return { accessToken: "", refreshToken: "" };
   }
 };
+
+export const getProfile = async (): Promise<UserProfile> => {
+  const response = await fetchWithInterceptors(`${BASE_URL}/member/profile`, {
+    method: "GET",
+  });
+  const { result } = await response.json();
+  return result;
+}

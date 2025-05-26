@@ -52,7 +52,7 @@ export const getIssueFromGithub = async (owner: string, repo: string, issueNumbe
 export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => {
   try {
     console.log(issues);
-    const response = await fetchWithInterceptors(`${dev_server}/issues`, {
+    const response = await fetch(`${dev_server}/issues`, {
       method: "POST",
       body: JSON.stringify({ issues }),
       headers: {
