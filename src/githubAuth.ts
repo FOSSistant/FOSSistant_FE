@@ -28,7 +28,9 @@ export async function requestGitHubCode() {
       }
 
         console.log("GitHub code 받음:", code);
-        
+        const result: TokenResponse = await postGithubCode({ githubCode: code });
+        chrome.storage.local.set({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+
         return code;
       } catch (error) {
         console.error("Github Code 받기 실패:", error);
@@ -40,15 +42,16 @@ export async function requestGitHubCode() {
 
 export const postGithubCode = async (tokenRequest: TokenRequest): Promise<TokenResponse> => {
   try {
-    const response = await fetch(`${dev_server}/tokens`, {
+    const response = await fetch(`${dev_server}/auth/github`, {
       method: "POST",
       body: JSON.stringify({ githubCode: tokenRequest.githubCode }),
       headers: {
         "Content-Type": "application/json"
       },
     });
-    return await response.json();
-  } catch (error) {
+    const { result } = await response.json();
+    console.log(result);
+    return result;  } catch (error) {
     console.log(error);
     return { accessToken: "", refreshToken: "" };
   }
