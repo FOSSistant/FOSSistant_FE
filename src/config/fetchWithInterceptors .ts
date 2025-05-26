@@ -1,3 +1,5 @@
+export const BASE_URL = process.env.REACT_APP_DEV_SERVER as string;
+
 export const getAccessToken = async (): Promise<string> => {
   return new Promise((resolve) => {
     chrome.storage.local.get('accessToken', (result) => {
@@ -17,7 +19,23 @@ export const getRefreshToken = async (): Promise<string> => {
 export const removeTokens = async () => {
   chrome.storage.local.remove('accessToken');
   chrome.storage.local.remove('refreshToken');
-};    
+};   
+
+
+export const getNewAccessToken = async () => {
+  try {
+    const refreshToken = await getRefreshToken();
+    const response = await fetch(`${BASE_URL}/auth/token/refresh`, {
+      method: 'POST',
+      body: JSON.stringify({ refreshToken }),
+    });
+    const { result } = await response.json();
+    return result;    
+  } catch (error) {
+    throw error;
+  }
+
+};
 
 
 export const fetchWithInterceptors = async (
@@ -43,8 +61,22 @@ export const fetchWithInterceptors = async (
     console.log('fetch 완료');
     console.log(response);
     // ======= 🔹 응답 인터셉터 영역 =======
-    if (response.status === 403) {
+    if (response.status === 403 || response.status === 401) {
       await removeTokens();
+      const result = await getNewAccessToken();
+      const newAccessToken = result.accessToken;
+      const newRefreshToken = result.refreshToken;
+      // 새로운 토큰으로 다시 요청청
+      const newInit: RequestInit = {
+        ...modifiedInit,
+        headers: {
+          ...modifiedInit.headers,
+          Authorization: `Bearer ${newAccessToken}`,
+        },
+      };
+
+      await fetch(input, newInit);
+      await chrome.storage.local.set({ accessToken: newAccessToken, refreshToken: newRefreshToken });
     }
 
     return response;
