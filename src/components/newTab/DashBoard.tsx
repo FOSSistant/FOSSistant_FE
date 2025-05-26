@@ -1,13 +1,26 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DifficultyContent from './DifficultyContent';
 import IssueDetailContent from './IssueDetailContent';
 import HomeContent from './HomeContent';
 import TrendyRepo from './TrendyRepo';
+import { UserProfile } from '../../types';
+import { getProfile } from '../../api/githubAuth';
+
 
 export const DashBoard = () => {
   // 1. 상태 추가
   const [selectedMenu, setSelectedMenu] = useState('홈');
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const result = await getProfile();
+      setProfile(result);
+    }
+    fetchProfile();
+  }, []);
+
 
   // 2. 메뉴별로 보여줄 UI 정의
   const renderContent = () => {
@@ -38,20 +51,12 @@ export const DashBoard = () => {
         {/* 프로필 */}
         <div className="w-full bg-[#2C2C2E] rounded-md flex flex-col items-center justify-center text-sm py-6">
           <img
-            src="https://avatars.githubusercontent.com/u/583231?v=4"
+            src={profile?.profileImage}
             alt="github profile"
             className="w-16 h-16 rounded-full mb-2 border-2 border-gray-500"
           />
-          <div className="font-semibold">octocat</div>
-          <a
-            href="https://github.com/octocat"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-blue-400 hover:underline mb-2"
-          >
-            github.com/octocat
-          </a>
-          <div className="mt-2 px-2 py-1 bg-green-700 rounded text-xs font-bold">Beginner</div>
+          <div className="font-semibold">{profile?.nickname}</div>
+          <div className="mt-2 px-2 py-1 bg-green-700 rounded text-xs font-bold">{profile?.level}</div>
         </div>
       </div>
 
