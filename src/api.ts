@@ -1,3 +1,5 @@
+import { fetchWithInterceptors } from "./api/fetchWithInterceptors ";
+
 export interface Issue {
     issueId: string;
 }
@@ -50,7 +52,7 @@ export const getIssueFromGithub = async (owner: string, repo: string, issueNumbe
 export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => {
   try {
     console.log(issues);
-    const response = await fetch(`${dev_server}/issues`, {
+    const response = await fetchWithInterceptors(`${dev_server}/issues`, {
       method: "POST",
       body: JSON.stringify({ issues }),
       headers: {
@@ -69,7 +71,7 @@ export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => 
 export const getIssueGuide = async (issue: Issue): Promise<IssueGuide | null> => {
   try {
     console.log(issue);
-    const response = await fetch(`${dev_server}/issues/guide`, {
+    const response = await fetchWithInterceptors(`${dev_server}/issues/guide`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
