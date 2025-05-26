@@ -1,4 +1,4 @@
-import { TokenRequest, TokenResponse } from "./types";
+import { TokenRequest, TokenResponse } from "../types";
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID as string;
 const REDIRECT_URI = `https://${chrome.runtime.id}.chromiumapp.org/`;

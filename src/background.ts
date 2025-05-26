@@ -1,4 +1,4 @@
-import { requestGitHubCode } from './githubAuth';
+import { requestGitHubCode } from './api/githubAuth';
 import { UrlInfo } from './types';
 
 // Service Worker

@@ -1,4 +1,4 @@
-import { getIssueLabels, Issue, IssueLabel } from './api';
+import { getIssueLabels, Issue, IssueLabel } from './api/issueApi';
 import { injectStyles } from './contentStyle';
 console.log('Content script loaded');
 chrome.runtime.sendMessage({ type: 'CONTENT_SCRIPT_READY' });
