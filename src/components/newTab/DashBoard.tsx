@@ -46,6 +46,7 @@ export const DashBoard = () => {
   };
 
   const patchLevel = async (level: 'BEGINNER' | 'EXPERIENCED') => {
+    if (profile && profile.level === level) return; // 이미 같은 레벨이면 아무것도 하지 않음
     const result = await patchMyLevel(level);
     if (result) {
       setProfile({
