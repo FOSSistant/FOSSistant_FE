@@ -188,15 +188,6 @@ const SidePanel: React.FC = () => {
         )}
       </div>
 
-      {/* 페이지 타입 정보 */}
-      {pageType && (
-        <div className="page-type-info">
-          <div className={`page-type-badge ${pageType}`}>
-            {pageType === 'list' ? '이슈 리스트 페이지' : '이슈 해결 가이드라인'}
-          </div>
-        </div>
-      )}
-
       {/* 이슈 상세 정보 */}
       {pageType === 'detail' && (
         <div className="issue-detail">
