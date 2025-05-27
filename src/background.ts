@@ -1,4 +1,4 @@
-import { requestGitHubCode } from './api/githubAuth';
+import { requestGitHubCode, patchMyLevel } from './api/githubAuth';
 import { UrlInfo } from './types';
 
 // Service Worker
@@ -30,6 +30,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
       }
     });
     return;
+  }
+
+  if (message.type === 'PATCH_USER_LEVEL') {
+    const { level } = message.data;
+    const result = await patchMyLevel(level);
+    sendResponse({ success: result });
+    return true;
   }
 
   // URL 정보 요청에 대한 응답 처리

@@ -32,10 +32,9 @@ export async function requestGitHubCode() {
         const result: TokenResponse = await postGithubCode({ githubCode: code });
         chrome.storage.local.set({ accessToken: result.accessToken, refreshToken: result.refreshToken });
 
-        return code;
+        return true;
       } catch (error) {
-        console.error("Github Code 받기 실패:", error);
-        return null;
+        return false;
       }
     }
   );
@@ -65,3 +64,21 @@ export const getProfile = async (): Promise<UserProfile> => {
   const { result } = await response.json();
   return result;
 }
+
+
+export const patchMyLevel = async (level: "BEGINNER" | "EXPERIENCED"): Promise<boolean> => {
+  try {
+    await fetchWithInterceptors(`${BASE_URL}/member/level`, {
+      method: "PATCH",
+      body: JSON.stringify({ level: level }),
+      headers: {
+      "Content-Type": "application/json"
+      },
+    });
+    return true;
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}
+
