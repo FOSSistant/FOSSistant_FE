@@ -6,12 +6,18 @@ import HomeContent from './HomeContent';
 import TrendyRepo from './TrendyRepo';
 import { UserProfile } from '../../types';
 import { getProfile, requestGitHubCode } from '../../api/githubAuth';
+import { toast, Toaster } from 'react-hot-toast';
 
 
 export const DashBoard = () => {
   // 1. 상태 추가
   const [selectedMenu, setSelectedMenu] = useState('홈');
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [levelDropdownOpen, setLevelDropdownOpen] = useState(false);
+  const levelOptions = [
+    { value: 'BEGINNER', label: 'Beginner' },
+    { value: 'EXPERIENCED', label: 'Experienced' }
+  ];
 
   const fetchProfile = async () => {
     const result = await getProfile();
@@ -41,6 +47,8 @@ export const DashBoard = () => {
 
   return (
     <div className="flex h-screen w-screen bg-[#1C1C1E] text-white p-6">
+          <Toaster position="top-center"/>
+
       {/* 좌측 사이드바 */}
       <div className="flex flex-col items-center space-y-6 mr-8 w-36">
         {/* 서비스 이름 */}
@@ -59,7 +67,38 @@ export const DashBoard = () => {
                 className="w-16 h-16 rounded-full mb-2 border-2 border-gray-500"
               />
               <div className="font-semibold">{profile.nickname}</div>
-              <div className="mt-2 px-2 py-1 bg-green-700 rounded text-xs font-bold">{profile.level}</div>
+              {/* 레벨 드롭다운 */}
+              <div className="relative">
+                <div
+                  className={`mt-2 px-2 py-1 rounded text-xs font-bold cursor-pointer select-none ${profile.level === 'BEGINNER' ? 'bg-green-700' : 'bg-blue-700'}`}
+                  onClick={() => setLevelDropdownOpen((open) => !open)}
+                >
+                  {profile.level === 'BEGINNER' ? 'Beginner' : 'Experienced'}
+                </div>
+                {levelDropdownOpen && (
+                  <div className="absolute left-0 mt-2 w-32 bg-gray-800 border border-gray-600 rounded shadow-lg z-10">
+                    {levelOptions.map(opt => (
+                      <div
+                        key={opt.value}
+                        className={`px-3 py-2 cursor-pointer hover:bg-gray-700 text-xs ${profile.level === opt.value ? 'font-bold text-blue-400' : 'text-gray-200'}`}
+                        onClick={() => {
+                          setLevelDropdownOpen(false);
+                          chrome.runtime.sendMessage({ type: 'PATCH_USER_LEVEL', data: { level: opt.value as 'BEGINNER' | 'EXPERIENCED' } }, (response) => {
+                            if (response.success) {
+                              setProfile({ ...profile, level: opt.value as 'BEGINNER' | 'EXPERIENCED' });
+                              toast.success(`${opt.label} 로 레벨이 변경되었습니다.`);
+                            } else {
+                              toast.error('레벨 변경에 실패했습니다.');
+                            }
+                          });
+                        }}
+                      >
+                        {opt.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </>
           ) : (
             <div className="flex flex-col items-center gap-2">
