@@ -27,8 +27,6 @@ export async function requestGitHubCode() {
         console.warn("code 없음");
         return;
       }
-
-        console.log("GitHub code 받음:", code);
         const result: TokenResponse = await postGithubCode({ githubCode: code });
         chrome.storage.local.set({ accessToken: result.accessToken, refreshToken: result.refreshToken });
 
@@ -50,9 +48,7 @@ export const postGithubCode = async (tokenRequest: TokenRequest): Promise<TokenR
       },
     });
     const { result } = await response.json();
-    console.log(result);
     return result;  } catch (error) {
-    console.log(error);
     return { accessToken: "", refreshToken: "" };
   }
 };

@@ -31,14 +31,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     });
     return;
   }
-
-  if (message.type === 'PATCH_USER_LEVEL') {
-    const { level } = message.data;
-    const result = await patchMyLevel(level);
-    sendResponse({ success: result });
-    return true;
-  }
-
   // URL 정보 요청에 대한 응답 처리
   if (message.type === 'GET_URL_INFO') {
     chrome.storage.local.get(['currentUrlInfo'], (result) => {

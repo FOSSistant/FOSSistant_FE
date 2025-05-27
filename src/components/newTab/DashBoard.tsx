@@ -5,7 +5,7 @@ import IssueDetailContent from './IssueDetailContent';
 import HomeContent from './HomeContent';
 import TrendyRepo from './TrendyRepo';
 import { UserProfile } from '../../types';
-import { getProfile, requestGitHubCode } from '../../api/githubAuth';
+import { getProfile, patchMyLevel, requestGitHubCode } from '../../api/githubAuth';
 import { toast, Toaster } from 'react-hot-toast';
 
 
@@ -45,6 +45,21 @@ export const DashBoard = () => {
     }
   };
 
+  const patchLevel = async (level: 'BEGINNER' | 'EXPERIENCED') => {
+    const result = await patchMyLevel(level);
+    if (result) {
+      setProfile({
+        ...profile!,
+        level: level
+      });
+      toast.success(`${level} 로 레벨이 변경되었습니다.`);
+    }
+    else {
+      toast.error('레벨 변경에 실패했습니다.');
+    }
+  } 
+
+
   return (
     <div className="flex h-screen w-screen bg-[#1C1C1E] text-white p-6">
           <Toaster position="top-center"/>
@@ -81,16 +96,9 @@ export const DashBoard = () => {
                       <div
                         key={opt.value}
                         className={`px-3 py-2 cursor-pointer hover:bg-gray-700 text-xs ${profile.level === opt.value ? 'font-bold text-blue-400' : 'text-gray-200'}`}
-                        onClick={() => {
+                        onClick={async () => {
                           setLevelDropdownOpen(false);
-                          chrome.runtime.sendMessage({ type: 'PATCH_USER_LEVEL', data: { level: opt.value as 'BEGINNER' | 'EXPERIENCED' } }, (response) => {
-                            if (response.success) {
-                              setProfile({ ...profile, level: opt.value as 'BEGINNER' | 'EXPERIENCED' });
-                              toast.success(`${opt.label} 로 레벨이 변경되었습니다.`);
-                            } else {
-                              toast.error('레벨 변경에 실패했습니다.');
-                            }
-                          });
+                          patchLevel(opt.value as 'BEGINNER' | 'EXPERIENCED');
                         }}
                       >
                         {opt.label}
