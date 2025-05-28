@@ -4,7 +4,7 @@ import { TokenRequest, TokenResponse, UserProfile } from "../types";
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID as string;
 const REDIRECT_URI = `https://${chrome.runtime.id}.chromiumapp.org/`;
 const GITHUB_CLIENT_SECRET = "f70b4ed63c748aeedfeb88b3b42570ab8295dc43"
-const AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=user:email,read:user,repo`;
+const AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=user:email,read:user,repo&prompt=login`;
 const dev_server = process.env.REACT_APP_DEV_SERVER as string;// github로부터 이슈들 body 정보 가져오기
 
 export async function requestGitHubCode() {

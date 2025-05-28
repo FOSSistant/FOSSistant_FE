@@ -6,7 +6,6 @@ import { IssueDetailInfo, IssueProps } from './components/IssueDetailInfo';
 import { IssueList } from './components/IssueList';
 import { TrendyRepos } from './components/TrendyRepos';
 import { getIssueGuide, IssueGuide } from './api/issueApi';
-import { refreshTest } from './config/fetchWithInterceptors ';
 const SidePanel: React.FC = () => {
   const [currentUrl, setCurrentUrl] = useState<UrlInfo | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -169,7 +168,6 @@ const SidePanel: React.FC = () => {
   
   return (
     <div className={`sidepanel-container ${theme}`}>
-      <button onClick={refreshTest}>테스트</button>
       {/* 현재 페이지 정보 */}
       <div className="current-page">
         {currentUrl && (

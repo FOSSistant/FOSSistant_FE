@@ -21,13 +21,6 @@ export const removeTokens = async () => {
   chrome.storage.local.remove('refreshToken');
 };   
 
-export const refreshTest = async () => {
-  const response = await fetchWithInterceptors(`${BASE_URL}/123/tokeen/qweqw`, {
-    method: 'GET',
-  });
-  const { result } = await response.json();
-  return result;
-};
 
 
 export const getNewAccessToken = async () => {
@@ -43,6 +36,7 @@ export const getNewAccessToken = async () => {
     const { result } = await response.json();
     return result;    
   } catch (error) {
+    console.log(error);
     throw error;
   }
 
@@ -74,13 +68,12 @@ export const fetchWithInterceptors = async (
     // ======= 🔹 응답 인터셉터 영역 =======
     if (response.status === 403 || response.status === 401) {
       console.log('403 또는 401 응답 감지');
-      await removeTokens();
-
-      const result = await getNewAccessToken();
+      const tokenResponse = await getNewAccessToken();
       console.log('getNewAccessToken 호출출');
-      console.log(result);
-      const newAccessToken = result.accessToken;
-      const newRefreshToken = result.refreshToken;
+      
+      const newAccessToken = tokenResponse.accessToken;
+      const newRefreshToken = tokenResponse.refreshToken;
+      await chrome.storage.local.set({ accessToken: newAccessToken, refreshToken: newRefreshToken });
       // 새로운 토큰으로 다시 요청청
       const newInit: RequestInit = {
         ...modifiedInit,
@@ -91,11 +84,11 @@ export const fetchWithInterceptors = async (
       };
 
       await fetch(input, newInit);
-      await chrome.storage.local.set({ accessToken: newAccessToken, refreshToken: newRefreshToken });
     }
 
     return response;
   } catch (err) {
+    await removeTokens();
     console.error('[Fetch 요청 실패]', err);
     throw err;
   }
