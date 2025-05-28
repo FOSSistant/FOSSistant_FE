@@ -1,15 +1,16 @@
 'use client';
-
+import { DifficultyOpinion } from './DifficultyOpinion';
 import { useState } from 'react';
-
 export interface IssueProps {
-  tags: string[];
   title: string;
   description: string;
   solution: string;
   cautions: string;
   difficulty: 'easy' | 'medium' | 'hard' | 'misc';
   isLoading?: boolean;
+  myDifficulty?: 'easy' | 'medium' | 'hard' | null;
+  onSubmitMyDifficulty?: (difficulty: 'easy' | 'medium' | 'hard') => void;
+  issueUrl: string;
 }
 
 const getDifficultyInKorean = (difficulty: IssueProps['difficulty']): string => {
@@ -54,13 +55,15 @@ const LoadingSkeleton = () => (
 );
 
 export const IssueDetailInfo = ({
-  tags,
   title,
   description,
   solution,
   cautions,
   difficulty,
   isLoading = false,
+  myDifficulty = null,
+  issueUrl,
+  onSubmitMyDifficulty,
 }: IssueProps) => {
   const [showDesc, setShowDesc] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
@@ -75,14 +78,7 @@ export const IssueDetailInfo = ({
       className="p-6 rounded-2xl shadow-lg border border-[#444] text-[#e0e0e0] space-y-4"
       style={{ backgroundColor: '#2d2d2d' }}
     >
-      {/* 태그 */}
-      <div className="flex flex-wrap gap-2">
-        {tags.map((tag, idx) => (
-          <span key={idx} className="bg-[#047857] text-white text-xs px-2 py-1 rounded-full">
-            #{tag}
-          </span>
-        ))}
-      </div>
+      <DifficultyOpinion issueUrl={issueUrl} />
 
       {/* 제목 */}
       <h2 className="text-2xl font-bold text-white">{title}</h2>
