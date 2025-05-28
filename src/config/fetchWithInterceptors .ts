@@ -21,12 +21,23 @@ export const removeTokens = async () => {
   chrome.storage.local.remove('refreshToken');
 };   
 
+export const refreshTest = async () => {
+  const response = await fetchWithInterceptors(`${BASE_URL}/123/tokeen/qweqw`, {
+    method: 'GET',
+  });
+  const { result } = await response.json();
+  return result;
+};
+
 
 export const getNewAccessToken = async () => {
   try {
     const refreshToken = await getRefreshToken();
     const response = await fetch(`${BASE_URL}/auth/token/refresh`, {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
       body: JSON.stringify({ refreshToken }),
     });
     const { result } = await response.json();
@@ -62,8 +73,12 @@ export const fetchWithInterceptors = async (
     console.log(response);
     // ======= 🔹 응답 인터셉터 영역 =======
     if (response.status === 403 || response.status === 401) {
+      console.log('403 또는 401 응답 감지');
       await removeTokens();
+
       const result = await getNewAccessToken();
+      console.log('getNewAccessToken 호출출');
+      console.log(result);
       const newAccessToken = result.accessToken;
       const newRefreshToken = result.refreshToken;
       // 새로운 토큰으로 다시 요청청

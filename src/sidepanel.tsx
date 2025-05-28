@@ -6,7 +6,7 @@ import { IssueDetailInfo, IssueProps } from './components/IssueDetailInfo';
 import { IssueList } from './components/IssueList';
 import { TrendyRepos } from './components/TrendyRepos';
 import { getIssueGuide, IssueGuide } from './api/issueApi';
-
+import { refreshTest } from './config/fetchWithInterceptors ';
 const SidePanel: React.FC = () => {
   const [currentUrl, setCurrentUrl] = useState<UrlInfo | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');
@@ -15,23 +15,14 @@ const SidePanel: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [issueInfo, setIssueInfo] = useState<IssueGuide | null>(null);
   const [isGithubConnected, setIsGithubConnected] = useState<boolean>(false);
-
-  const dummyIssueInfo: IssueProps = {
-    tags: ['이슈', '해결', '방법'],
-    title: '이슈 제목',
-    description: '이슈 설명',
-    solution: '이슈 해결 방법',
-    cautions: '이슈 주의 사항',
-    difficulty: 'easy',
-  };
-  
+  const [issueUrl, setIssueUrl] = useState<string | null>(null);
   // URL 처리 및 페이지 타입 설정 로직을 함수로 분리
   const handleUrlUpdate = async (url: string) => {
     if (url.endsWith('/issues')) {
       setPageType('list');
     } else if (/\/issues\/\d+$/.test(url)) {
       setPageType('detail');
-      await fetchDetailInfo(url);
+      fetchDetailInfo(url);
     } else {
       setPageType(null);
       await fetchTrendingRepos();
@@ -98,6 +89,7 @@ const SidePanel: React.FC = () => {
       const issueGuide: IssueGuide | null = await getIssueGuide({
         issueId: `https://github.com/${owner}/${repo}/issues/${issueNumber}`
       });
+      setIssueUrl(`https://github.com/${owner}/${repo}/issues/${issueNumber}`);
       setIssueInfo(issueGuide);
     } catch (error) {
       console.error('Error fetching issue info:', error);
@@ -177,7 +169,7 @@ const SidePanel: React.FC = () => {
   
   return (
     <div className={`sidepanel-container ${theme}`}>
-
+      <button onClick={refreshTest}>테스트</button>
       {/* 현재 페이지 정보 */}
       <div className="current-page">
         {currentUrl && (
@@ -192,13 +184,13 @@ const SidePanel: React.FC = () => {
       {pageType === 'detail' && (
         <div className="issue-detail">
           <IssueDetailInfo
-            tags={dummyIssueInfo.tags}
             title={issueInfo?.title || ''}
             description={issueInfo?.description || ''}
             solution={issueInfo?.solution || ''}
             cautions={issueInfo?.caution || ''}
             difficulty={issueInfo?.difficulty as 'easy' | 'medium' | 'hard' | 'misc' || 'misc'}
             isLoading={isLoading}
+            issueUrl={issueUrl || ''}
           />
         </div>
       )}
