@@ -2,6 +2,14 @@
 @tailwind components;
 @tailwind utilities;
 
+html, body, #root, .sidepanel-container {
+  font-family: 'Pretendard', 'Noto Sans KR', 'Inter', 'Apple SD Gothic Neo', 'Malgun Gothic', 'Segoe UI', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'sans-serif';
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .loading {
   display: flex;
   justify-content: center;
