@@ -60,7 +60,7 @@ function createFloatingButton() {
 // 초기화
 function init() {
   injectStyles();
-  createFloatingButton();
+  // createFloatingButton();
 }
 
 // DOM이 로드되면 초기화
