@@ -168,20 +168,18 @@ const SidePanel: React.FC = () => {
   }
   
   return (
-    <div className={`sidepanel-container ${theme}`}>
+    <div className={`sidepanel-container ${theme} min-h-screen bg-[#18181b] p-2 flex flex-col gap-2`}>
       {/* 현재 페이지 정보 */}
-      <div className="current-page">
-        {currentUrl && (
-          <>
-            <img src={currentUrl.favicon} alt="" className="favicon" />
-            <h2>{currentUrl.title}</h2>
-          </>
-        )}
-      </div>
+      {currentUrl && (
+        <div className="flex items-center gap-2 mb-1 p-2 rounded-lg bg-[#232323] border border-[#444]">
+          <img src={currentUrl.favicon} alt="" className="w-5 h-5 rounded" />
+          <span className="text-xs text-[#e0e0e0] truncate font-medium">{currentUrl.title}</span>
+        </div>
+      )}
 
       {/* 이슈 상세 정보 */}
       {pageType === 'detail' && (
-        <div className="issue-detail">
+        <div className="mb-2">
           <IssueDetailInfo
             title={issueInfo?.title || ''}
             description={issueInfo?.description || ''}
@@ -195,12 +193,16 @@ const SidePanel: React.FC = () => {
       )}
 
       {pageType === 'list' && (
-        <IssueList />
+        <div className="mb-2">
+          <IssueList />
+        </div>
       )}
 
       {/* 트렌딩 레포지토리 */}
       {!pageType && (
-        <TrendyRepos repos={trendingRepos} />
+        <div className="mb-2">
+          <TrendyRepos repos={trendingRepos} />
+        </div>
       )}
     </div>
   );

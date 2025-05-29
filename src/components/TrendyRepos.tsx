@@ -3,26 +3,26 @@ export const TrendyRepos = ({repos}: {repos: any}) => {
   
   return (
     <div
-      className="p-6 rounded-2xl shadow-lg border border-[#444] text-[#e0e0e0] space-y-4"
-      style={{ backgroundColor: '#2d2d2d' }}
+      className="p-4 rounded-xl shadow-md border border-[#444] text-[#e0e0e0] space-y-3"
+      style={{ backgroundColor: '#232323' }}
     >
-      <h3>🔥 트렌딩 레포지토리</h3>
-      <div className="space-y-4">
+      <h3 className="text-base font-bold mb-2">🔥 트렌딩 레포지토리</h3>
+      <div className="space-y-2">
         {repos.map((repo: any) => (
           <div 
             key={repo.name} 
-            className="bg-[#3a3a3a] border border-[#555] rounded-lg p-4 hover:border-[#666] transition-colors"
+            className="bg-[#2c2c2c] border border-[#444] rounded-md p-3 hover:border-[#666] transition-colors"
           >
             <a 
               href={repo.url}
               target="_blank"
               rel="noopener noreferrer" 
-              className="text-lg font-semibold text-blue-400 hover:text-blue-300"
+              className="text-sm font-semibold text-blue-300 hover:text-blue-200"
             >
               {repo.name}
             </a>
-            <p className="text-[#cccccc] mt-2 text-sm">{repo.description}</p>
-            <div className="flex items-center gap-4 mt-3 text-sm text-gray-400">
+            <p className="text-xs text-[#bbbbbb] mt-1">{repo.description}</p>
+            <div className="flex items-center gap-3 mt-2 text-xs text-gray-400">
               <span className="flex items-center gap-1">
                 ⭐ {repo.stars.toLocaleString()}
               </span>
