@@ -79,7 +79,7 @@ export const DashBoard = () => {
       <div className="flex flex-col items-center space-y-6 mr-8 w-36">
         {/* 서비스 이름 */}
         <div className="w-full h-20 bg-[#2C2C2E] rounded-md flex flex-col items-center justify-center font-bold text-sm py-2">
-          <span className="text-lg font-extrabold">Fossistant</span>
+          <span className="text-lg font-extrabold">FOSSistant</span>
           <span className="text-xs font-normal text-gray-400 mt-1">오픈소스 기여 도우미</span>
         </div>
 
