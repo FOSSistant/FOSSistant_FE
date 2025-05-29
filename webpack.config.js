@@ -55,7 +55,8 @@ const reactConfig = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.REACT_APP_DEV_SERVER': JSON.stringify(process.env.REACT_APP_DEV_SERVER)
+      'process.env.REACT_APP_DEV_SERVER': JSON.stringify(process.env.REACT_APP_DEV_SERVER),
+      'process.env.GITHUB_CLIENT_ID': JSON.stringify(process.env.GITHUB_CLIENT_ID),
     }),
     new CopyPlugin({
       patterns: [
@@ -104,7 +105,8 @@ const nonReactConfig = {
   },
   plugins: [
     new webpack.DefinePlugin({
-      'process.env.REACT_APP_DEV_SERVER': JSON.stringify(process.env.REACT_APP_DEV_SERVER)
+      'process.env.REACT_APP_DEV_SERVER': JSON.stringify(process.env.REACT_APP_DEV_SERVER),
+      'process.env.GITHUB_CLIENT_ID': JSON.stringify(process.env.GITHUB_CLIENT_ID),
     }),  
     new CopyPlugin({
       patterns: [

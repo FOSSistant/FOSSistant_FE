@@ -1,5 +1,7 @@
+import { fetchWithInterceptors } from "../config/fetchWithInterceptors ";
+
 export interface Issue {
-    issueId: string;
+  issueId: string;
 }
 
 export interface IssueLabel {
@@ -14,6 +16,8 @@ export interface IssueGuide {
   solution: string;
   caution: string;
 }
+
+
 
 // API 서버 주소 변수 선언
 const dev_server = process.env.REACT_APP_DEV_SERVER as string;// github로부터 이슈들 body 정보 가져오기
@@ -69,7 +73,7 @@ export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => 
 export const getIssueGuide = async (issue: Issue): Promise<IssueGuide | null> => {
   try {
     console.log(issue);
-    const response = await fetch(`${dev_server}/issues/guide`, {
+    const response = await fetchWithInterceptors(`${dev_server}/issues/guide`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -85,8 +89,32 @@ export const getIssueGuide = async (issue: Issue): Promise<IssueGuide | null> =>
 };
 
 
+export const submitDifficultyOpinion = async (issueId: string, feedbackTag: string): Promise<boolean> => {
+  try {
+    await fetchWithInterceptors(`${dev_server}/issues/feedback`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ issueId, feedbackTag }),
+    });
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
 
-
-
-
-
+export const getDifficultyOpinion = async (issueId: string): Promise<string | null> => {
+  try {
+    const response = await fetchWithInterceptors(`${dev_server}/issues/feedback?issueId=${encodeURIComponent(issueId)}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+    const { result } = await response.json();
+    return result.feedbackTag;
+  } catch (error) {
+    return null;
+  }
+};

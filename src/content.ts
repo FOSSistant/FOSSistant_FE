@@ -1,4 +1,4 @@
-import { getIssueLabels, Issue, IssueLabel } from './api';
+import { getIssueLabels, Issue, IssueLabel } from './api/issueApi';
 import { injectStyles } from './contentStyle';
 console.log('Content script loaded');
 chrome.runtime.sendMessage({ type: 'CONTENT_SCRIPT_READY' });
@@ -143,7 +143,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             loadingLabel.className = 'Label custom-label custom-label-style loading-label';
             loadingLabel.innerHTML = `
               <div class="loading-spinner"></div>
-              <span>로딩 중...</span>
+              <span>Loading ...</span>
             `;
             loadingLabel.style.backgroundColor = 'rgba(110, 119, 129, 0.1)';
             loadingLabel.style.color = '#6e7781';

@@ -5,7 +5,7 @@ import './index.css';
 import { IssueDetailInfo, IssueProps } from './components/IssueDetailInfo';
 import { IssueList } from './components/IssueList';
 import { TrendyRepos } from './components/TrendyRepos';
-import { getIssueGuide, IssueGuide } from './api';
+import { getIssueGuide, IssueGuide } from './api/issueApi';
 
 const SidePanel: React.FC = () => {
   const [currentUrl, setCurrentUrl] = useState<UrlInfo | null>(null);
@@ -14,23 +14,15 @@ const SidePanel: React.FC = () => {
   const [trendingRepos, setTrendingRepos] = useState<TrendingRepo[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [issueInfo, setIssueInfo] = useState<IssueGuide | null>(null);
-
-  const dummyIssueInfo: IssueProps = {
-    tags: ['이슈', '해결', '방법'],
-    title: '이슈 제목',
-    description: '이슈 설명',
-    solution: '이슈 해결 방법',
-    cautions: '이슈 주의 사항',
-    difficulty: 'easy',
-  };
-  
+  const [isGithubConnected, setIsGithubConnected] = useState<boolean>(false);
+  const [issueUrl, setIssueUrl] = useState<string | null>(null);
   // URL 처리 및 페이지 타입 설정 로직을 함수로 분리
   const handleUrlUpdate = async (url: string) => {
     if (url.endsWith('/issues')) {
       setPageType('list');
     } else if (/\/issues\/\d+$/.test(url)) {
       setPageType('detail');
-      await fetchDetailInfo(url);
+      fetchDetailInfo(url);
     } else {
       setPageType(null);
       await fetchTrendingRepos();
@@ -55,6 +47,15 @@ const SidePanel: React.FC = () => {
       }
     });
 
+    chrome.storage.local.get(['accessToken', 'refreshToken'], (result) => {
+      if (result.accessToken && result.refreshToken) {
+        setIsGithubConnected(true);
+      } else {
+        setIsGithubConnected(false);
+      }
+    });
+
+    
     // 테마 로드
     loadTheme();
 
@@ -88,6 +89,7 @@ const SidePanel: React.FC = () => {
       const issueGuide: IssueGuide | null = await getIssueGuide({
         issueId: `https://github.com/${owner}/${repo}/issues/${issueNumber}`
       });
+      setIssueUrl(`https://github.com/${owner}/${repo}/issues/${issueNumber}`);
       setIssueInfo(issueGuide);
     } catch (error) {
       console.error('Error fetching issue info:', error);
@@ -132,50 +134,75 @@ const SidePanel: React.FC = () => {
     chrome.storage.sync.set({ theme: 'dark' });
   };
 
-  return (
-    <div className={`sidepanel-container ${theme}`}>
-
-      {/* 현재 페이지 정보 */}
-      <div className="current-page">
-        {currentUrl && (
-          <>
-            <img src={currentUrl.favicon} alt="" className="favicon" />
-            <h2>{currentUrl.title}</h2>
-          </>
-        )}
-      </div>
-
-      {/* 페이지 타입 정보 */}
-      {pageType && (
-        <div className="page-type-info">
-          <div className={`page-type-badge ${pageType}`}>
-            {pageType === 'list' ? '이슈 리스트 페이지' : '이슈 해결 가이드라인'}
+  if (!isGithubConnected) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center bg-[#18181b]">
+        <div className="github-auth-button flex justify-center my-8">
+          <div className="bg-[#2C2C2E] border border-gray-800 rounded-xl shadow-lg px-8 py-7 flex flex-col items-center w-full max-w-xs">
+            <div className="flex items-center gap-2 mb-4">
+              <svg className="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" /></svg>
+              <span className="text-gray-200 font-semibold text-base">서비스를 이용하시려면 <span className="text-blue-400 font-bold">깃허브 연동</span>이 필요합니다</span>
+            </div>
+            <button
+              onClick={() => {
+                chrome.runtime.sendMessage({ type: 'REQUEST_GITHUB_CODE' }, (response) => {
+                  if (response.success) {
+                    setIsGithubConnected(true);
+                  } else {
+                    setIsGithubConnected(false);
+                    console.log('GitHub code request failed');
+                  }
+                });
+              }}
+              className="px-5 py-2 rounded-lg bg-black text-white font-semibold shadow-md hover:bg-gray-800 transition-all duration-200 border border-gray-800 flex items-center gap-2 w-full justify-center"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.01.08-2.11 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.91.08 2.11.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.19 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+              </svg>
+              Github 연동
+            </button>
           </div>
+        </div>
+      </div>
+    );
+  }
+  
+  return (
+    <div className={`sidepanel-container ${theme} min-h-screen bg-[#18181b] p-2 flex flex-col gap-2`}>
+      {/* 현재 페이지 정보 */}
+      {currentUrl && (
+        <div className="flex items-center gap-2 mb-1 p-2 rounded-lg bg-[#232323] border border-[#444]">
+          <img src={currentUrl.favicon} alt="" className="w-5 h-5 rounded" />
+          <span className="text-xs text-[#e0e0e0] truncate font-medium">{currentUrl.title}</span>
         </div>
       )}
 
       {/* 이슈 상세 정보 */}
       {pageType === 'detail' && (
-        <div className="issue-detail">
+        <div className="mb-2">
           <IssueDetailInfo
-            tags={dummyIssueInfo.tags}
             title={issueInfo?.title || ''}
             description={issueInfo?.description || ''}
             solution={issueInfo?.solution || ''}
             cautions={issueInfo?.caution || ''}
             difficulty={issueInfo?.difficulty as 'easy' | 'medium' | 'hard' | 'misc' || 'misc'}
             isLoading={isLoading}
+            issueUrl={issueUrl || ''}
           />
         </div>
       )}
 
       {pageType === 'list' && (
-        <IssueList />
+        <div className="mb-2">
+          <IssueList />
+        </div>
       )}
 
       {/* 트렌딩 레포지토리 */}
       {!pageType && (
-        <TrendyRepos repos={trendingRepos} />
+        <div className="mb-2">
+          <TrendyRepos repos={trendingRepos} />
+        </div>
       )}
     </div>
   );

@@ -45,3 +45,18 @@ export interface IssueInfo {
     total_count: number;
   };
 } 
+
+export interface TokenResponse {
+  accessToken: string;
+  refreshToken: string;
+}
+
+export interface TokenRequest {
+  githubCode: string;
+}
+
+export interface UserProfile {
+  nickname: string;
+  profileImage: string;
+  level: "BEGINNER" | "EXPERIENCED";
+}

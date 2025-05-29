@@ -1,15 +1,16 @@
 {
   "manifest_version": 3,
-  "name": "Chrome Extension",
+  "name": "FOSSistant",
   "version": "1.0.0",
-  "description": "Chrome Extension",
+  "description": "FOSSistant",
   "permissions": [
     "storage",
     "tabs",
     "sidePanel",
     "activeTab",
     "scripting",
-    "webNavigation"
+    "webNavigation",
+    "identity"
   ],
   "host_permissions": ["<all_urls>"],
   "action": {
@@ -32,6 +33,10 @@
       "all_frames": true
     }
   ],
+  "oauth2": {
+    "client_id": "YOUR_CLIENT_ID",
+    "scopes": ["read:user", "repo"]
+  },
   "chrome_url_overrides": {
     "newtab": "newtab.html"
   },
