@@ -6,6 +6,7 @@ import { IssueDetailInfo, IssueProps } from './components/IssueDetailInfo';
 import { IssueList } from './components/IssueList';
 import { TrendyRepos } from './components/TrendyRepos';
 import { getIssueGuide, IssueGuide } from './api/issueApi';
+
 const SidePanel: React.FC = () => {
   const [currentUrl, setCurrentUrl] = useState<UrlInfo | null>(null);
   const [theme, setTheme] = useState<'light' | 'dark'>('dark');

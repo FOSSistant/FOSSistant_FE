@@ -7,36 +7,36 @@ const GITHUB_CLIENT_SECRET = "f70b4ed63c748aeedfeb88b3b42570ab8295dc43"
 const AUTH_URL = `https://github.com/login/oauth/authorize?client_id=${GITHUB_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&scope=user:email,read:user,repo&prompt=login`;
 const dev_server = process.env.REACT_APP_DEV_SERVER as string;// github로부터 이슈들 body 정보 가져오기
 
-export async function requestGitHubCode() {
-  chrome.identity.launchWebAuthFlow(
-    {
-      url: AUTH_URL,
-      interactive: true,
-    },
-    async (redirectUrl) => {
-      try {
-        if (chrome.runtime.lastError || !redirectUrl) {
-          console.error("OAuth 실패:", chrome.runtime.lastError);
-          return;
+export const requestGitHubCode = async (): Promise<boolean> => {
+  return new Promise((resolve) => {
+    chrome.identity.launchWebAuthFlow(
+      {
+        url: AUTH_URL,
+        interactive: true,
+      },
+      async (redirectUrl) => {
+        try {
+          if (chrome.runtime.lastError || !redirectUrl) {
+            console.error("OAuth 실패:", chrome.runtime.lastError);
+            resolve(false);
+            return;
+          }
+          const url = new URL(redirectUrl);
+          const code = url.searchParams.get("code");
+          if (!code) {
+            resolve(false);
+            return;
+          }
+          const result: TokenResponse = await postGithubCode({ githubCode: code });
+          await chrome.storage.local.set({ accessToken: result.accessToken, refreshToken: result.refreshToken });
+          resolve(true);
+        } catch (error) {
+          resolve(false);
+        }
       }
-
-      const url = new URL(redirectUrl);
-      const code = url.searchParams.get("code");
-
-      if (!code) {
-        console.warn("code 없음");
-        return;
-      }
-        const result: TokenResponse = await postGithubCode({ githubCode: code });
-        chrome.storage.local.set({ accessToken: result.accessToken, refreshToken: result.refreshToken });
-
-        return true;
-      } catch (error) {
-        return false;
-      }
-    }
-  );
-}
+    );
+  });
+};
 
 export const postGithubCode = async (tokenRequest: TokenRequest): Promise<TokenResponse> => {
   try {

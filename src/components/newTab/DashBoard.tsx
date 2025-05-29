@@ -28,6 +28,16 @@ export const DashBoard = () => {
     fetchProfile();
   }, []);
 
+  const connectGithub = async () => {
+    const result = await requestGitHubCode();
+    if (result) {
+      toast.success('깃허브 연동에 성공했습니다.');
+      fetchProfile();
+    }
+    else {
+      toast.error('깃허브 연동에 실패했습니다.');
+    }
+  }
 
   // 2. 메뉴별로 보여줄 UI 정의
   const renderContent = () => {
@@ -113,15 +123,7 @@ export const DashBoard = () => {
             <div className="flex flex-col items-center gap-2">
               <div className="text-gray-300 font-semibold mb-2 text-xs">깃허브 연동이 필요합니다</div>
               <button
-                onClick={() => {
-                  chrome.runtime.sendMessage({ type: 'REQUEST_GITHUB_CODE' }, (response) => {
-                    if (response.success) {
-                      fetchProfile();
-                    } else {
-                      console.log('GitHub code request failed');
-                    }
-                  });
-                }}
+                onClick={connectGithub}
                 className="px-4 py-1.5 rounded-lg bg-black text-white text-sm font-semibold shadow-md hover:bg-gray-800 transition-all duration-200 border border-gray-800 flex items-center gap-1 w-full justify-center"
               >
                 <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">

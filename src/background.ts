@@ -10,10 +10,14 @@ chrome.runtime.onInstalled.addListener(() => {
 
 // 메시지 리스너
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
-  console.log('Message received:', message);
   if (message.type === 'REQUEST_GITHUB_CODE') {
-    const result = await requestGitHubCode();
-    sendResponse({ success: result });
+    requestGitHubCode().then((result) => {
+      console.log('background sendResponse', result);
+      sendResponse(result);
+    }).catch((e) => {
+      sendResponse(false);
+    });
+    return true;
   }
 
   if (message.type === 'CONTENT_SCRIPT_READY') {
@@ -24,7 +28,6 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
           data: result.currentUrlInfo
         }, () => {
           if (chrome.runtime.lastError) {
-            console.warn('초기 메시지 전송 실패:', chrome.runtime.lastError.message);
           }
         });
       }
@@ -44,16 +47,13 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     if (sender.tab?.windowId) {
       chrome.sidePanel.open({ windowId: sender.tab.windowId })
         .then(() => {
-          console.log('사이드 패널 열기 성공');
           sendResponse({ success: true });
         })
         .catch((error) => {
-          console.error('사이드 패널 열기 실패:', error);
           sendResponse({ success: false, error: error.message });
         });
       return true; // 비동기 응답을 위해 true 반환
     } else {
-      console.error('윈도우 ID를 찾을 수 없음');
       sendResponse({ success: false, error: 'Window ID not found' });
     }
   }
@@ -90,10 +90,8 @@ const updateUrlInfo = async (tabId: number) => {
         chrome.tabs.sendMessage(tabId, { type: 'UPDATE_URL_INFO', data: urlInfo });
         chrome.runtime.sendMessage({ type: 'UPDATE_URL_INFO', data: urlInfo });
       } catch (error) {
-        console.log('메시지 전송 실패 (수신자가 없음):', error);
       }
     } catch (error) {
-      console.error('URL 정보 업데이트 실패:', error);
     }
   }, 2000);
 };
@@ -105,8 +103,6 @@ chrome.tabs.onActivated.addListener(async (activeInfo) => {
 
 // 탭이 업데이트될 때마다 URL 정보 업데이트
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  console.log('onUpdated', tabId, changeInfo.status);
-
   if (changeInfo.status === 'complete') {
     await updateUrlInfo(tabId);
   }
@@ -126,7 +122,6 @@ chrome.action.onClicked.addListener((tab) => {
     enabled: true
   }, () => {
     if (chrome.runtime.lastError) {
-      console.error("setOptions 실패:", chrome.runtime.lastError.message);
       return;
     }
 
@@ -135,9 +130,7 @@ chrome.action.onClicked.addListener((tab) => {
       windowId: tab.windowId
     }, () => {
       if (chrome.runtime.lastError) {
-        console.error("open 실패:", chrome.runtime.lastError.message);
       } else {
-        console.log("사이드패널 열림!");
       }
     });
   });
