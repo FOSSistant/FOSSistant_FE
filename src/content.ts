@@ -87,8 +87,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       console.log('repo:', repo);
 
       const values: string[] = Array.from(
-        document.querySelectorAll('span[class^="issue-item-module__defaultNumberDescription"]')
-      )
+        document.querySelectorAll('span[class*="defaultNumberDescription"]'))
         .map((parentSpan) => parentSpan.querySelector('span')?.textContent?.trim())
         .filter((text): text is string => !!text)
         .map((text) => text.replace('#', ''));
