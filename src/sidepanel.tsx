@@ -18,7 +18,7 @@ const SidePanel: React.FC = () => {
   const [issueUrl, setIssueUrl] = useState<string | null>(null);
   // URL 처리 및 페이지 타입 설정 로직을 함수로 분리
   const handleUrlUpdate = async (url: string) => {
-    if (url.endsWith('/issues')) {
+    if (/\/issues(\/)?(\?.*)?$/.test(url)) {
       setPageType('list');
     } else if (/\/issues\/\d+$/.test(url)) {
       setPageType('detail');

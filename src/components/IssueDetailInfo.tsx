@@ -90,7 +90,7 @@ export const IssueDetailInfo = ({
   return (
     <div
       className="p-4 rounded-xl shadow-md border border-[#444] text-[#e0e0e0] space-y-3"
-      style={{ backgroundColor: '#232323' }}
+      style={{ backgroundColor: '#232323', wordBreak: 'break-word', maxWidth: '100%' }}
     >
       <DifficultyOpinion issueUrl={issueUrl} />
 
