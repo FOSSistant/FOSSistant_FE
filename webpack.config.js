@@ -9,7 +9,6 @@ const reactConfig = {
   entry: {
     sidepanel: './src/sidepanel.tsx',
     background: './src/background.ts',
-    content: './src/content.ts',
     newtab: './src/newtab.tsx',
   },
   output: {
