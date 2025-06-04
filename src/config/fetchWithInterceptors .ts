@@ -47,49 +47,83 @@ export const fetchWithInterceptors = async (
   input: RequestInfo,
   init: RequestInit = {}
 ): Promise<Response> => {
-  console.log('fetchWithInterceptors 진입');
+  console.log('🔗 fetchWithInterceptors 진입');
+  
   // ======= 🔹 요청 인터셉터 영역 =======
-  const token = await getAccessToken(); // 예: chrome.storage에서 토큰 불러오기
+  const token = await getAccessToken();
+  console.log('🔑 토큰 상태:', { hasToken: !!token, tokenLength: token?.length || 0 });
+  
   const modifiedInit: RequestInit = {
     ...init,
     headers: {
       ...(init.headers || {}),
-      Authorization: token ? `Bearer ${token}` : '',
+      ...(token && { Authorization: `Bearer ${token}` }),
       'Content-Type': 'application/json',
     },
   };
+  
+  // 토큰이 없으면 인증 요청 제안
+  if (!token) {
+    console.log('⚠️ 인증 토큰이 없습니다. GitHub 로그인이 필요합니다.');
+    throw new Error('AUTHENTICATION_REQUIRED');
+  }
   // ====================================
 
   try {
-    console.log('fetch 진입');
+    console.log('📡 fetch 요청 시작');
     const response = await fetch(input, modifiedInit);
-    console.log('fetch 완료');
-    console.log(response);
+    console.log('✅ fetch 응답 수신:', { status: response.status, statusText: response.statusText });
+    
     // ======= 🔹 응답 인터셉터 영역 =======
     if (response.status === 403 || response.status === 401) {
-      console.log('403 또는 401 응답 감지');
-      const tokenResponse = await getNewAccessToken();
-      console.log('getNewAccessToken 호출출');
+      console.log('🔄 토큰 갱신 필요 (상태 코드:', response.status, ')');
       
-      const newAccessToken = tokenResponse.accessToken;
-      const newRefreshToken = tokenResponse.refreshToken;
-      await chrome.storage.local.set({ accessToken: newAccessToken, refreshToken: newRefreshToken });
-      // 새로운 토큰으로 다시 요청청
-      const newInit: RequestInit = {
-        ...modifiedInit,
-        headers: {
-          ...modifiedInit.headers,
-          Authorization: `Bearer ${newAccessToken}`,
-        },
-      };
+      try {
+        const tokenResponse = await getNewAccessToken();
+        console.log('🔄 토큰 갱신 성공');
+        
+        if (tokenResponse && tokenResponse.accessToken) {
+          const newAccessToken = tokenResponse.accessToken;
+          const newRefreshToken = tokenResponse.refreshToken;
+          await chrome.storage.local.set({ 
+            accessToken: newAccessToken, 
+            refreshToken: newRefreshToken 
+          });
+          
+          // 새로운 토큰으로 다시 요청
+          const newInit: RequestInit = {
+            ...modifiedInit,
+            headers: {
+              ...modifiedInit.headers,
+              Authorization: `Bearer ${newAccessToken}`,
+            },
+          };
 
-      await fetch(input, newInit);
+          console.log('🔄 새 토큰으로 재요청');
+          return await fetch(input, newInit);
+        } else {
+          throw new Error('토큰 갱신 응답이 유효하지 않음');
+        }
+      } catch (refreshError) {
+        console.error('❌ 토큰 갱신 실패:', refreshError);
+        await removeTokens();
+        throw new Error('AUTHENTICATION_REFRESH_FAILED');
+      }
     }
 
     return response;
   } catch (err) {
-    await removeTokens();
-    console.error('[Fetch 요청 실패]', err);
+    console.error('❌ [Fetch 요청 실패]', err);
+    
+    // 특정 인증 오류의 경우에만 토큰 제거
+    if (err instanceof Error && 
+        (err.message.includes('AUTHENTICATION') || 
+         err.message.includes('401') || 
+         err.message.includes('403'))) {
+      console.log('🧹 인증 오류로 인한 토큰 정리');
+      await removeTokens();
+    }
+    
     throw err;
   }
 };

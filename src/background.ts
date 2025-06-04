@@ -1,15 +1,16 @@
 import { requestGitHubCode, patchMyLevel } from './api/githubAuth';
-import { UrlInfo } from './types';
+
+console.log('🚀 Background script 시작');
 
 // Service Worker
-chrome.runtime.onInstalled.addListener(() => {
-
-  console.log('Extension installed');
+chrome.runtime.onInstalled.addListener(async () => {
+  console.log('🔧 Extension installed');
 });
-
 
 // 메시지 리스너
 chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
+  console.log('📨 Background 메시지 수신:', message.type, message);
+  
   if (message.type === 'REQUEST_GITHUB_CODE') {
     requestGitHubCode().then((result) => {
       console.log('background sendResponse', result);
@@ -20,119 +21,74 @@ chrome.runtime.onMessage.addListener(async (message, sender, sendResponse) => {
     return true;
   }
 
-  if (message.type === 'CONTENT_SCRIPT_READY') {
-    chrome.storage.local.get(['currentUrlInfo'], (result) => {
-      if (result.currentUrlInfo && sender.tab?.id !== undefined) {
-        chrome.tabs.sendMessage(sender.tab.id, {
-          type: 'UPDATE_URL_INFO',
-          data: result.currentUrlInfo
-        }, () => {
-          if (chrome.runtime.lastError) {
-          }
-        });
-      }
-    });
+  if (message.type === 'URL_CHANGED') {
+    console.log('🔄 URL 변경 메시지 수신:', message.data);
+    
+    // 사이드패널에 URL 변경 전달
+    try {
+      chrome.runtime.sendMessage({
+        type: 'UPDATE_URL_INFO',
+        data: message.data
+      }, () => {
+        if (chrome.runtime.lastError) {
+          console.log('❌ 사이드패널 메시지 전송 실패:', chrome.runtime.lastError);
+        } else {
+          console.log('✅ 사이드패널에 URL 전송 완료');
+        }
+      });
+    } catch (error) {
+      console.error('❌ 사이드패널 메시지 전송 오류:', error);
+    }
+    
+    sendResponse({ success: true });
     return;
   }
-  // URL 정보 요청에 대한 응답 처리
-  if (message.type === 'GET_URL_INFO') {
-    chrome.storage.local.get(['currentUrlInfo'], (result) => {
-      sendResponse(result.currentUrlInfo || null);
-    });
-    return true; // 비동기 응답을 위해 true 반환
+
+  if (message.type === 'CONTENT_SCRIPT_READY') {
+    console.log('🎯 Content script 준비 완료, 탭 ID:', sender.tab?.id);
+    sendResponse({ success: true });
+    return;
   }
 
   // 사이드패널 토글 메시지 처리
   if (message.type === 'TOGGLE_SIDEPANEL') {
+    console.log('🔄 사이드패널 토글 요청, windowId:', sender.tab?.windowId);
+    
     if (sender.tab?.windowId) {
-      chrome.sidePanel.open({ windowId: sender.tab.windowId })
-        .then(() => {
-          sendResponse({ success: true });
-        })
-        .catch((error) => {
-          sendResponse({ success: false, error: error.message });
-        });
-      return true; // 비동기 응답을 위해 true 반환
+      try {
+        await chrome.sidePanel.open({ windowId: sender.tab.windowId });
+        console.log('✅ 사이드패널 열기 성공');
+        sendResponse({ success: true });
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        console.error('❌ 사이드패널 열기 실패:', error);
+        sendResponse({ success: false, error: errorMessage });
+      }
+      return true;
     } else {
+      console.error('❌ Window ID not found');
       sendResponse({ success: false, error: 'Window ID not found' });
     }
   }
 });
 
-const debounceMap: { [tabId: number]: ReturnType<typeof setTimeout> } = {};
-const lastUrlMap: { [tabId: number]: string } = {};
+console.log('✅ 메시지 리스너 등록 완료');
 
-// URL 정보 업데이트 함수
-const updateUrlInfo = async (tabId: number) => {
-  if (debounceMap[tabId]) {
-    clearTimeout(debounceMap[tabId]);
+chrome.action.onClicked.addListener(async (tab) => {
+  console.log('🖱️ 확장 프로그램 아이콘 클릭:', tab.id, tab.windowId);
+  
+  if (!tab.windowId) {
+    console.error('❌ 윈도우 ID가 없음');
+    return;
   }
-  debounceMap[tabId] = setTimeout(async () => {
-    try {
-      const tabInfo = await chrome.tabs.get(tabId);
-      if (!tabInfo.url || tabInfo.url.startsWith('chrome://')) return;
 
-      // 중복 URL 방지
-      if (lastUrlMap[tabId] === tabInfo.url) return;
-      lastUrlMap[tabId] = tabInfo.url;
-
-      const urlInfo: UrlInfo = {
-        url: tabInfo.url,
-        title: tabInfo.title || '',
-        favicon: tabInfo.favIconUrl || ''
-      };
-      
-      // 로컬 스토리지에 저장
-      await chrome.storage.local.set({ currentUrlInfo: urlInfo });
-      
-      // 메시지 전송 시도
-      try {
-        chrome.tabs.sendMessage(tabId, { type: 'UPDATE_URL_INFO', data: urlInfo });
-        chrome.runtime.sendMessage({ type: 'UPDATE_URL_INFO', data: urlInfo });
-      } catch (error) {
-      }
-    } catch (error) {
-    }
-  }, 2000);
-};
-
-// 탭이 활성화될 때마다 URL 정보 업데이트
-chrome.tabs.onActivated.addListener(async (activeInfo) => {
-  await updateUrlInfo(activeInfo.tabId);
-});
-
-// 탭이 업데이트될 때마다 URL 정보 업데이트
-chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  if (changeInfo.status === 'complete') {
-    await updateUrlInfo(tabId);
+  try {
+    console.log('🚀 사이드패널 열기 시도...');
+    await chrome.sidePanel.open({ windowId: tab.windowId });
+    console.log('✅ 사이드패널 열기 성공');
+  } catch (error) {
+    console.error('❌ 사이드패널 열기 실패:', error);
   }
 });
 
-// 웹 페이지 네비게이션 이벤트 리스너 추가
-chrome.webNavigation.onHistoryStateUpdated.addListener(async (details) => {
-  await updateUrlInfo(details.tabId);
-});
-chrome.action.onClicked.addListener((tab) => {
-  if (!tab.id || !tab.windowId) return;
-
-  // 먼저 옵션 설정
-  chrome.sidePanel.setOptions({
-    tabId: tab.id,
-    path: "sidepanel.html",
-    enabled: true
-  }, () => {
-    if (chrome.runtime.lastError) {
-      return;
-    }
-
-    // 설정 완료되면 패널 열기
-    chrome.sidePanel.open({
-      windowId: tab.windowId
-    }, () => {
-      if (chrome.runtime.lastError) {
-      } else {
-      }
-    });
-  });
-  return true;
-});
+console.log('🎉 Background script 초기화 완료');

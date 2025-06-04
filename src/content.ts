@@ -1,280 +1,217 @@
-import { getIssueLabels, Issue, IssueLabel } from './api/issueApi';
 import { injectStyles } from './contentStyle';
-console.log('Content script loaded');
-chrome.runtime.sendMessage({ type: 'CONTENT_SCRIPT_READY' });
+import { createFloatingButton } from './content/floatingButton';
+import { handleUrlUpdate, resetLabelingState } from './content/urlHandler';
 
-// 플로팅 버튼 생성 및 추가
-function createFloatingButton() {
-  const existingButton = document.getElementById('floating-button-container');
-  if (existingButton) {
-    existingButton.remove();
+console.log('🚀 Content script loaded');
+console.log('📍 Current URL:', window.location.href);
+
+let isInitialized = false;
+let lastProcessedUrl = '';
+
+// 현재 사이트가 GitHub인지 확인
+function isGitHubSite(): boolean {
+  return /^https:\/\/github\.com\//.test(window.location.href);
+}
+
+// 현재 사이트가 크롬 새 탭인지 확인
+function isChromeNewTab(): boolean {
+  return window.location.href.startsWith('chrome://newtab/') || 
+         window.location.href.startsWith('chrome-search://local-ntp/');
+}
+
+// 초기화 함수
+async function init() {
+  console.log('🔧 Content script 초기화 시작');
+  
+  if (isInitialized) {
+    console.log('⚠️ 이미 초기화됨, 중복 초기화 방지');
+    return;
   }
-
-  const container = document.createElement('div');
-  container.id = 'floating-button-container';
-
-  const button = document.createElement('button');
-  button.className = 'floating-button';
-  button.setAttribute('aria-label', '사이드 패널 열기');
   
-  // SVG 아이콘 추가
-  button.innerHTML = `
-    <svg 
-      width="24" 
-      height="24" 
-      viewBox="0 0 24 24" 
-      fill="none" 
-      stroke-width="2" 
-      stroke-linecap="round" 
-      stroke-linejoin="round"
-      class="floating-button-icon"
-    >
-      <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"></path>
-    </svg>
-  `;
+  try {
+    // 모든 사이트에서 스타일 주입
+    injectStyles();
+    console.log('✅ 스타일 주입 완료');
+    
+    // GitHub에서만 플로팅 버튼 생성
+    if (isGitHubSite()) {
+      // createFloatingButton();
+      console.log('✅ GitHub 사이트 - 플로팅 버튼 생성 완료');
+    } else {
+      console.log('ℹ️ GitHub이 아닌 사이트 - 플로팅 버튼 생략');
+    }
+    
+    // 모든 사이트에서 현재 페이지 URL 즉시 처리
+    console.log('📍 현재 페이지 URL 즉시 처리:', window.location.href);
+    lastProcessedUrl = window.location.href;
+    await sendUrlUpdate(window.location.href, document.title);
+    console.log('✅ 현재 URL 즉시 처리 완료');
 
-  // 클릭 이벤트 추가
-  let isButtonEnabled = true;
-  button.addEventListener('click', () => {
-    if (!isButtonEnabled) return;
-    isButtonEnabled = false;
+    isInitialized = true;
+    console.log('🎉 Content script 초기화 완료');
 
-    chrome.runtime.sendMessage({ type: 'TOGGLE_SIDEPANEL' }, (response) => {
-      if (chrome.runtime.lastError) {
-        console.log('사이드 패널 열기 실패:', chrome.runtime.lastError.message);
-      } else if (!response?.success) {
-        console.log('사이드 패널 열기 실패:', response?.error || '알 수 없는 에러');
+    // cleanup function은 페이지 언로드 시 호출
+    window.addEventListener('beforeunload', () => {
+      console.log('👋 페이지 언로드, 상태 초기화');
+      if (isGitHubSite()) {
+        resetLabelingState();
       }
-      
-      // 1초 후에 버튼 다시 활성화
-      setTimeout(() => {
-        isButtonEnabled = true;
-      }, 1000);
     });
-  });
-
-  container.appendChild(button);
-  document.body.appendChild(container);
+  } catch (error) {
+    console.error('❌ Content script 초기화 실패:', error);
+  }
 }
 
-// 초기화
-function init() {
-  injectStyles();
-  // createFloatingButton();
-}
-
-// DOM이 로드되면 초기화
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', init);
-} else {
-  init();
-}
-
-
-// DOM이 로드되면 초기화
+// URL 업데이트를 background와 sidepanel에 전송하는 함수
+async function sendUrlUpdate(url: string, title: string): Promise<void> {
+  const urlInfo = {
+    url,
+    title: title || '',
+    favicon: ''
+  };
   
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'UPDATE_URL_INFO') {
-    const urlInfo = message.data;
-
-    // 깃허브 이슈 리스트 페이지(https://github.com/{owner}/{repo}/issues)에서만 동작
-    const listMatch = urlInfo.url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+)\/issues(\/?(\?.*)?)?$/);
-    if (listMatch) {
-      const owner = listMatch[1];
-      const repo = listMatch[2];
-      console.log('URL 정보 수신:', urlInfo);
-      console.log('owner:', owner);
-      console.log('repo:', repo);
-
-      const values: string[] = Array.from(
-        document.querySelectorAll('span[class*="defaultNumberDescription"]'))
-        .map((parentSpan) => parentSpan.querySelector('span')?.textContent?.trim())
-        .filter((text): text is string => !!text)
-        .map((text) => text.replace('#', ''));
-
-      let issueUrls: Issue[] = [];
-      values.forEach(value => {
-        issueUrls.push({
-          issueId: `https://github.com/${owner}/${repo}/issues/${value}`,
-        });
-      });
-
-      console.log('🎯 추출된 이슈 URL들:', issueUrls);
-
-      // 5개씩 나누는 함수
-      function chunkArray<T>(array: T[], size: number): T[][] {
-        const result: T[][] = [];
-        for (let i = 0; i < array.length; i += size) {
-          result.push(array.slice(i, i + size));
-        }
-        return result;
+  console.log('📡 URL 업데이트 전송:', urlInfo);
+  
+  // Background script에 전송
+  try {
+    chrome.runtime.sendMessage({
+      type: 'URL_CHANGED',
+      data: urlInfo
+    }, (response) => {
+      if (chrome.runtime.lastError) {
+        console.log('❌ Background script 메시지 전송 실패:', chrome.runtime.lastError);
+      } else {
+        console.log('✅ Background script에 URL 전송 완료');
       }
-
-      // 난이도 라벨을 li > h3 앞에 삽입하는 함수
-      async function labelIssuesBatch(issueUrls: Issue[]) {
-        try {
-          if (!issueUrls || issueUrls.length === 0) {
-            throw new Error('이슈 URL이 없습니다.');
-          }
-
-          // 1. 먼저 모든 이슈에 로딩 라벨 추가
-          for (const issueUrl of issueUrls) {
-            const match = issueUrl.issueId.match(/\/issues\/(\d+)/);
-            if (!match) {
-              console.log('match이슈 URL이 없습니다.', issueUrl);
-              continue;
-            }
-            
-            const issueNumber = match[1];
-
-            const titleH3 = Array.from(document.querySelectorAll('a')).find(a => 
-              Array.from(a.classList).some(cls => cls.startsWith('IssuePullRequestTitle')) &&
-              a.getAttribute('href')?.match(/\d+$/)?.[0] === issueNumber
-            );
-
-            if (!titleH3) {
-              console.log('titleH3 이슈 URL이 없습니다.', issueUrl);
-              continue;
-            }
-
-            // 로딩 라벨 생성
-            const loadingLabel = document.createElement('span');
-            loadingLabel.className = 'Label custom-label custom-label-style loading-label';
-            loadingLabel.innerHTML = `
-              <div class="loading-spinner"></div>
-              <span>Loading ...</span>
-            `;
-            loadingLabel.style.backgroundColor = 'rgba(110, 119, 129, 0.1)';
-            loadingLabel.style.color = '#6e7781';
-            loadingLabel.style.borderColor = 'rgba(110, 119, 129, 0.2)';
-
-            titleH3.insertBefore(loadingLabel, titleH3.firstChild);
-          }
-
-          // 2. 실제 라벨 정보 가져오기
-          const issueLabels: IssueLabel[] = await getIssueLabels(issueUrls);
-          if (!issueLabels || !Array.isArray(issueLabels)) {
-            throw new Error('이슈 라벨 정보를 가져오는데 실패했습니다.');
-          }
-
-          // 3. 로딩 라벨을 실제 라벨로 교체
-          for (const issueLabel of issueLabels) {
-            try {
-              if (!issueLabel || !issueLabel.issueId) continue;
-
-              const match = issueLabel.issueId.match(/\/issues\/(\d+)/);
-              if (!match) continue;
-
-              const issueNumber = match[1];
-
-              const titleH3 = Array.from(document.querySelectorAll('a')).find(a => 
-                Array.from(a.classList).some(cls => cls.startsWith('IssuePullRequestTitle')) &&
-                a.getAttribute('href')?.match(/\d+$/)?.[0] === issueNumber
-              );
-
-              if (!titleH3) {
-                console.log('titleH3 이슈 URL이 없습니다.');
-                continue;
-              }
-
-              // 기존 로딩 라벨 제거
-              const existingLabel = titleH3.querySelector('.custom-label');
-              if (existingLabel) {
-                existingLabel.remove();
-              }
-
-              // 실제 라벨 생성
-              const tier = issueLabel.difficulty;
-              if (!tier) continue;
-
-              const newLabel = document.createElement('span');
-              newLabel.className = 'Label custom-label custom-label-style';
-              const icon = tier === 'easy' ? '🧩' : 
-                          tier === 'medium' ? '⚙️' :
-                          tier === 'hard' ? '🔥' : '❓';
-              newLabel.innerHTML = `
-                <span class="tier-icon">${icon}</span>
-                <span class="tier-text">${tier}</span>
-              `;
-              newLabel.style.backgroundColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
-                                             tier === 'medium' ? 'rgba(255, 152, 0, 0.1)' :
-                                             tier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
-              newLabel.style.color = tier === 'easy' ? '#43a047' : 
-                                    tier === 'medium' ? '#f57c00' :
-                                    tier === 'hard' ? '#e53935' : '#6e7781';
-              newLabel.style.borderColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
-                                          tier === 'medium' ? 'rgba(255, 152, 0, 0.2)' :
-                                          tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
-
-              titleH3.insertBefore(newLabel, titleH3.firstChild);
-            } catch (error) {
-              console.error('개별 이슈 라벨 처리 중 에러:', error);
-              continue;
-            }
-          }
-        } catch (error) {
-          console.error('라벨 처리 중 에러 발생:', error);
-          const errorMessage = document.createElement('div');
-          errorMessage.className = 'error-message';
-          errorMessage.textContent = '라벨 처리 중 오류가 발생했습니다.';
-          document.body.appendChild(errorMessage);
-          setTimeout(() => errorMessage.remove(), 3000);
-        }
-      }
-
-      // 전체 이슈 URL을 5개씩 나누어 순차 처리
-      async function labelAllIssues(issueUrls: Issue[]) {
-        if (!issueUrls || issueUrls.length === 0) {
-          console.warn('처리할 이슈가 없습니다.');
-          return;
-        }
-
-        try {
-          const batches = chunkArray(issueUrls, 30);
-          for (const batch of batches) {
-            console.log('배치 처리 시작:', batch);
-            await labelIssuesBatch(batch);
-          }
-        } catch (error) {
-          console.error('전체 이슈 처리 중 에러 발생:', error);
-          // 에러 메시지 표시
-          const errorMessage = document.createElement('div');
-          errorMessage.className = 'error-message';
-          errorMessage.textContent = '이슈 처리 중 오류가 발생했습니다.';
-          document.body.appendChild(errorMessage);
-          setTimeout(() => errorMessage.remove(), 3000);
-        }
-      }
-
-      // 라벨링 실행
-      (async () => {
-        try {
-          await labelAllIssues(issueUrls);
-        } catch (error: unknown) {
-          console.error('라벨링 실행 중 에러 발생:', error);
-          // 확장 프로그램 컨텍스트 무효화 에러 처리
-          if (error instanceof Error && error.message === 'Extension context invalidated.') {
-            const errorMessage = document.createElement('div');
-            errorMessage.className = 'error-message';
-            errorMessage.textContent = '확장 프로그램을 자동으로 새로고침합니다...';
-            document.body.appendChild(errorMessage);
-            
-            // 1초 후 자동 새로고침
-            setTimeout(() => {
-              try {
-                chrome.runtime.reload();
-              } catch (reloadError) {
-                console.error('자동 새로고침 실패:', reloadError);
-                errorMessage.textContent = '확장 프로그램을 수동으로 새로고침해주세요.';
-                setTimeout(() => errorMessage.remove(), 3000);
-              }
-            }, 1000);
-            return;
-          }
-        }
-      })();
+    });
+  } catch (error) {
+    console.error('❌ URL 전송 오류:', error);
+  }
+  
+  // GitHub에서만 라벨링 처리
+  if (isGitHubSite()) {
+    try {
+      await handleUrlUpdate(urlInfo);
+    } catch (error) {
+      console.error('❌ URL 핸들러 처리 오류:', error);
     }
   }
+}
+
+// 즉시 초기화
+console.log('✅ 사이트 감지, 즉시 초기화 시작');
+init();
+
+// Background script에 준비 완료 신호 전송
+console.log('📡 Background script에 준비 완료 신호 전송');
+chrome.runtime.sendMessage({ type: 'CONTENT_SCRIPT_READY' }, (response) => {
+  if (chrome.runtime.lastError) {
+    console.log('❌ Background script와 통신 실패:', chrome.runtime.lastError);
+  } else {
+    console.log('✅ Background script와 통신 성공:', response);
+  }
 });
+
+// URL 변화만 감지하는 함수
+function shouldProcessPathChange(newUrl: string): boolean {
+  console.log('🔍 URL 변화 분석:', {
+    newUrl,
+    lastUrl: lastProcessedUrl,
+    shouldProcess: newUrl !== lastProcessedUrl
+  });
+  
+  return newUrl !== lastProcessedUrl;
+}
+
+// URL 변화 처리 함수
+async function handlePathChange(reason: string): Promise<void> {
+  const currentUrl = window.location.href;
+  
+  if (!shouldProcessPathChange(currentUrl)) {
+    return;
+  }
+  
+  console.log(`🔄 URL 변화 처리 (${reason}):`, {
+    from: lastProcessedUrl,
+    to: currentUrl
+  });
+  
+  lastProcessedUrl = currentUrl;
+  
+  // GitHub에서만 라벨링 상태 초기화
+  if (isGitHubSite()) {
+    resetLabelingState();
+  }
+  
+  // 새 URL 업데이트 전송
+  await sendUrlUpdate(currentUrl, document.title);
+}
+
+// SPA 네비게이션 감지를 위한 MutationObserver (모든 사이트)
+console.log('👁️ SPA 감지용 MutationObserver 설정 중...');
+
+let observerTimeout: ReturnType<typeof setTimeout> | null = null;
+
+const observer = new MutationObserver(async (mutations) => {
+  // 디바운싱: 연속된 DOM 변화를 하나로 묶어서 처리
+  if (observerTimeout) {
+    clearTimeout(observerTimeout);
+  }
+  
+  observerTimeout = setTimeout(async () => {
+    await handlePathChange('MutationObserver');
+  }, 300);
+});
+
+// 메인 컨테이너 관찰
+function startObserving(): void {
+  let targetContainer = document.body;
+  console.log('✅ body 관찰 시작');
+  
+  observer.observe(targetContainer, {
+    childList: true,
+    subtree: true,
+    attributes: false
+  });
+  
+  console.log('✅ 컨테이너 관찰 시작');
+}
+
+// DOM이 준비되면 관찰 시작
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', startObserving);
+} else {
+  startObserving();
+}
+
+// popstate 이벤트 감지 (브라우저 뒤로가기/앞으로가기)
+window.addEventListener('popstate', async () => {
+  console.log('🔙 popstate 이벤트 감지');
+  await handlePathChange('popstate');
+});
+
+// History API 감지 (pushState/replaceState)
+const originalPushState = history.pushState;
+const originalReplaceState = history.replaceState;
+
+history.pushState = function(data: any, unused: string, url?: string | URL | null) {
+  originalPushState.call(history, data, unused, url);
+  
+  setTimeout(async () => {
+    console.log('📍 pushState 감지:', window.location.href);
+    await handlePathChange('pushState');
+  }, 100);
+};
+
+history.replaceState = function(data: any, unused: string, url?: string | URL | null) {
+  originalReplaceState.call(history, data, unused, url);
+  
+  setTimeout(async () => {
+    console.log('🔄 replaceState 감지:', window.location.href);
+    await handlePathChange('replaceState');
+  }, 100);
+};
+
+console.log('✅ 전체 사이트 URL 감지 시스템 설정 완료');
 
 
