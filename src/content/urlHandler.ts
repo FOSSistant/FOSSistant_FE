@@ -159,6 +159,7 @@ export async function handleUrlUpdate(urlInfo: UrlInfo): Promise<void> {
   
   // 디바운싱을 적용한 라벨링 실행
   await executeLabelingWithDebounce(urlInfo);
+  console.log('🔄 URL 핸들러 - URL 업데이트 완료');
 }
 
 // 라벨링 상태 초기화 함수 (필요시 사용)

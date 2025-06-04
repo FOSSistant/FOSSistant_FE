@@ -1,7 +1,7 @@
 export const IssueList = () => {
   const difficulties = [
     {
-      level: '상',
+      level: '🔥 hard',
       color: 'text-[var(--color-danger)]',
       bgColor: 'bg-[var(--color-danger-bg)]',
       borderColor: 'border-[var(--color-danger-border)]',
@@ -11,7 +11,7 @@ export const IssueList = () => {
       examples: 'API 통합 오류, 멀티쓰레드 충돌, SSR+CSR 복합 인증 이슈 등'
     },
     {
-      level: '중',
+      level: '⚙️ medium',
       color: 'text-[var(--color-warning)]',
       bgColor: 'bg-[var(--color-warning-bg)]',
       borderColor: 'border-[var(--color-warning-border)]',
@@ -21,7 +21,7 @@ export const IssueList = () => {
       examples: 'API 요청 실패 원인 파악, props/state 구조 오류 등'
     },
     {
-      level: '하',
+      level: '🧩 easy',
       color: 'text-[var(--color-success)]',
       bgColor: 'bg-[var(--color-success-bg)]',
       borderColor: 'border-[var(--color-success-border)]',
@@ -31,7 +31,7 @@ export const IssueList = () => {
       examples: '클래스 오타, 라우팅 주소 오류 등'
     },
     {
-      level: '기타',
+      level: '❓ unknown',
       color: 'text-[var(--color-gray)]',
       bgColor: 'bg-[var(--color-gray-bg)]',
       borderColor: 'border-[var(--color-gray-border)]',
@@ -54,7 +54,7 @@ export const IssueList = () => {
       <div className="flex items-center gap-3 pb-2 border-b border-[var(--border-primary)] animate-fade-in-up">
         <div>
           <h1 className="text-lg font-bold text-[var(--text-primary)]">이슈 난이도 분류 기준</h1>
-          <p className="text-xs text-[var(--text-muted)]">오픈소스 이슈의 난이도를 평가하는 가이드라인</p>
+          <p className="text-xs text-[var(--text-muted)]">AI 분류 모델이 평가하는 오픈소스 이슈의 난이도 가이드라인</p>
         </div>
       </div>
 
@@ -102,7 +102,7 @@ export const IssueList = () => {
       {/* 푸터 */}
       <div className="pt-3 border-t border-[var(--border-primary)] text-center animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
         <p className="text-xs text-[var(--text-muted)]">
-          정확한 난이도 평가로 더 나은 오픈소스 기여를
+          여러분의 피드백이 AI 모델을 더 똑똑하게 만듭니다
         </p>
       </div>
     </div>

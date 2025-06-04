@@ -35,15 +35,15 @@ export interface IssueProps {
 const getDifficultyInKorean = (difficulty: IssueProps['difficulty']): string => {
   switch (difficulty) {
     case 'easy':
-      return '쉬움';
+      return '🧩 easy';
     case 'medium':
-      return '보통';
+      return '⚙️ medium';
     case 'hard':
-      return '어려움';
+      return '🔥 hard';
     case 'misc':
-      return '기타';
+      return '❓ unknown';
     default:
-      return '알 수 없음';
+      return '❓ unknown';
   }
 };
 
@@ -181,6 +181,7 @@ export const IssueDetailInfo = ({
   const [isHighlighting, setIsHighlighting] = useState(false);
 
   // 텍스트 하이라이트 기능
+  // 텍스트 하이라이트 기능
   const handleHighlightText = async () => {
     if (!highlightedBody || highlightedBody.trim() === '') {
       console.log('하이라이트할 텍스트가 없음');
@@ -301,6 +302,9 @@ export const IssueDetailInfo = ({
   if (isLoading) {
     return <LoadingSkeleton />;
   }
+  if (isLoading) {
+    return <LoadingSkeleton />;
+  }
 
   return (
     <div
@@ -321,7 +325,7 @@ export const IssueDetailInfo = ({
         <div className="flex-1">
           <h2 className="text-lg font-bold text-[var(--text-primary)] mb-2 leading-tight">{title}</h2>
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs text-[var(--text-muted)]">예측 난이도:</span>
+            <span className="text-xs text-[var(--text-muted)]">AI 분류 모델 예측:</span>
             <span className={`text-sm font-semibold ${getDifficultyColor(difficulty)} px-3 py-1 rounded-full bg-opacity-20 transition-all duration-300 difficulty-badge micro-interaction`}
                   style={{ 
                     backgroundColor: difficulty === 'easy' ? 'var(--color-success-bg)' :
@@ -339,7 +343,7 @@ export const IssueDetailInfo = ({
                 onClick={handleHighlightText}
                 disabled={isHighlighting}
                 className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold bg-[var(--color-warning-bg)] text-[var(--color-warning)] border border-[var(--color-warning-border)] hover:bg-[var(--color-warning-bg)] hover:border-[var(--color-warning)] transition-all duration-300 micro-interaction disabled:opacity-50 disabled:cursor-not-allowed"
-                title="이슈 본문에서 중요한 부분을 하이라이트합니다"
+                title="AI가 분석한 이슈의 핵심 내용을 하이라이트합니다"
               >
                 {isHighlighting ? (
                   <>

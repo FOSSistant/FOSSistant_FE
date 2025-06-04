@@ -11,7 +11,7 @@ export const TrendyRepos = ({repos}: {repos: any}) => {
       <div className="flex items-center gap-3 pb-2 border-b border-[var(--border-primary)] animate-fade-in-up">
         <div>
           <h3 className="text-lg font-bold text-[var(--text-primary)]">트렌딩 레포지토리</h3>
-          <p className="text-xs text-[var(--text-muted)]">GitHub에서 인기 있는 오픈소스 프로젝트</p>
+          <p className="text-xs text-[var(--text-muted)]">AI가 분석한 GitHub의 인기 오픈소스 프로젝트</p>
         </div>
       </div>
 

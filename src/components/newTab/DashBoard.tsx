@@ -187,19 +187,25 @@ export const DashBoard = () => {
         <div className="flex flex-col flex-1 min-h-0">
           {/* 네비게이션 */}
           <div className="w-full flex justify-center px-2 mb-6 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-            <div className="flex space-x-3 w-full max-w-4xl bg-[var(--bg-primary)] rounded-2xl p-2 border border-[var(--border-primary)] shadow-lg">
+            <div className="flex space-x-2 bg-[var(--bg-primary)] rounded-2xl p-1.5 border border-[var(--border-primary)] shadow-lg">
               {menuItems.map((item, index) => (
                 <button
                   key={item.key}
                   onClick={() => setSelectedMenu(item.key)}
-                  className={`flex items-center gap-2 px-5 py-3 rounded-xl transition-all duration-300 flex-1 justify-center font-semibold text-sm micro-interaction animate-fade-in-up ${
+                  className={`group flex items-center justify-center px-4 py-2.5 rounded-xl transition-all duration-300 font-medium text-sm micro-interaction animate-fade-in-up ${
                     selectedMenu === item.key
                       ? 'bg-gradient-to-r from-[var(--color-primary)] to-[var(--color-primary-light)] text-white shadow-lg hover:shadow-xl scale-[1.02]'
-                      : 'bg-[var(--bg-secondary)] text-[var(--text-secondary)] hover:bg-[var(--bg-tertiary)] hover:text-[var(--text-primary)] border border-[var(--border-primary)] hover:border-[var(--border-secondary)]'
+                      : 'bg-transparent text-[var(--text-secondary)] hover:bg-[var(--bg-secondary)] hover:text-[var(--text-primary)]'
                   }`}
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2">
+                    {item.key === '홈' && <span className={`text-lg transition-transform group-hover:scale-110 ${selectedMenu === item.key ? '' : 'opacity-60'}`}>🏠</span>}
+                    {item.key === '난이도' && <span className={`text-lg transition-transform group-hover:scale-110 ${selectedMenu === item.key ? '' : 'opacity-60'}`}>📊</span>}
+                    {item.key === '이슈 상세' && <span className={`text-lg transition-transform group-hover:scale-110 ${selectedMenu === item.key ? '' : 'opacity-60'}`}>📋</span>}
+                    {item.key === '버튼' && <span className={`text-lg transition-transform group-hover:scale-110 ${selectedMenu === item.key ? '' : 'opacity-60'}`}>🔥</span>}
+                    <span className="whitespace-nowrap">{item.label}</span>
+                  </span>
                 </button>
               ))}
             </div>
@@ -208,9 +214,7 @@ export const DashBoard = () => {
           {/* 메인 콘텐츠 */}
           <div className="flex-1 flex justify-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
             <div className="w-full max-w-4xl bg-gradient-to-br from-[var(--bg-primary)] to-[var(--bg-secondary)] rounded-2xl p-8 overflow-y-auto text-base mx-auto border border-[var(--border-primary)] shadow-xl custom-scrollbar">
-              <div className="animate-fade-in-scale">
-                {renderContent()}
-              </div>
+              {renderContent()}
             </div>
           </div>
         </div>

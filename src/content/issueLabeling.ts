@@ -1,8 +1,37 @@
 import { getIssueLabels, Issue, IssueLabel } from '../api/issueApi';
+import { getProfile } from '../api/githubAuth';
 import { showErrorMessage } from './utils';
 
 // 라벨링 진행 상태 추적
 const labelingStates = new Set<string>();
+
+// 사용자 수준 확인 함수
+async function getUserLevel(): Promise<'BEGINNER' | 'EXPERIENCED' | null> {
+  try {
+    const profile = await getProfile();
+    return profile.level;
+  } catch (error) {
+    console.log('사용자 프로필을 가져올 수 없음:', error);
+    return null;
+  }
+}
+
+// 난이도가 사용자 수준보다 낮은지 확인하는 함수
+function shouldAddHighlight(userLevel: 'BEGINNER' | 'EXPERIENCED' | null, issueDifficulty: string): boolean {
+  if (!userLevel) return false;
+  
+  // BEGINNER 사용자: easy 난이도만 하이라이트
+  if (userLevel === 'BEGINNER') {
+    return issueDifficulty === 'easy';
+  }
+  
+  // EXPERIENCED 사용자: easy, medium 난이도 하이라이트
+  if (userLevel === 'EXPERIENCED') {
+    return issueDifficulty === 'easy' || issueDifficulty === 'medium';
+  }
+  
+  return false;
+}
 
 // 로딩 라벨을 생성하는 함수
 function createLoadingLabel(): HTMLSpanElement {
@@ -19,7 +48,7 @@ function createLoadingLabel(): HTMLSpanElement {
 }
 
 // 난이도 라벨을 생성하는 함수
-function createDifficultyLabel(tier: string): HTMLSpanElement {
+function createDifficultyLabel(tier: string, shouldHighlight: boolean = false): HTMLSpanElement {
   const newLabel = document.createElement('span');
   newLabel.className = 'Label custom-label custom-label-style';
   
@@ -41,6 +70,14 @@ function createDifficultyLabel(tier: string): HTMLSpanElement {
   newLabel.style.borderColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
                               tier === 'medium' ? 'rgba(255, 152, 0, 0.2)' :
                               tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
+  
+  // 하이라이트 효과 추가
+  if (shouldHighlight) {
+    newLabel.style.boxShadow = '0 0 8px rgba(255, 193, 7, 0.6)';
+    newLabel.style.border = '2px solid #ffc107';
+    newLabel.style.animation = 'recommend-pulse 2s ease-in-out infinite';
+    newLabel.title = '추천: 당신의 수준에 적합한 이슈입니다!';
+  }
   
   return newLabel;
 }
@@ -180,7 +217,9 @@ export async function labelIssuesBatch(issueUrls: Issue[]): Promise<void> {
           continue;
         }
 
-        const difficultyLabel = createDifficultyLabel(tier);
+        const userLevel = await getUserLevel();
+        const shouldHighlight = shouldAddHighlight(userLevel, tier);
+        const difficultyLabel = createDifficultyLabel(tier, shouldHighlight);
         titleElement.insertBefore(difficultyLabel, titleElement.firstChild);
         console.log(`✅ 이슈 #${issueNumber} 라벨 교체 완료: ${tier}`);
         

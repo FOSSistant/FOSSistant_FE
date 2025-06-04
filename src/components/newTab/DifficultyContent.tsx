@@ -4,10 +4,7 @@ const DifficultyContent = () => (
   <div className="space-y-6">
     {/* 헤더 섹션 */}
     <div className="text-center mb-6">
-      <div className="inline-flex items-center gap-3 mb-3">
-        <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-xl flex items-center justify-center text-xl">
-          🎯
-        </div>
+      <div className="mb-3">
         <h1 className="text-2xl font-bold bg-gradient-to-r from-yellow-400 to-orange-400 bg-clip-text text-transparent">
           난이도 분류 기준
         </h1>
@@ -19,7 +16,7 @@ const DifficultyContent = () => (
 
     {/* 난이도 카드들 */}
     <div className="grid gap-4">
-      {/* 상 (Hard) */}
+      {/* HARD */}
       <div className="group bg-gradient-to-br from-red-500/15 to-pink-600/15 rounded-xl p-5 border border-red-500/30 hover:border-red-400/50 transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-red-500/20 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shrink-0">
@@ -27,7 +24,7 @@ const DifficultyContent = () => (
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-lg font-bold text-red-300">상급 (Hard)</h2>
+              <h2 className="text-lg font-bold text-red-300">🔥 hard</h2>
               <span className="px-2 py-1 bg-red-500/20 text-red-300 text-xs font-bold rounded-full border border-red-500/30">
                 고난도
               </span>
@@ -47,7 +44,7 @@ const DifficultyContent = () => (
         </div>
       </div>
 
-      {/* 중 (Medium) */}
+      {/* MEDIUM */}
       <div className="group bg-gradient-to-br from-yellow-500/15 to-orange-600/15 rounded-xl p-5 border border-yellow-500/30 hover:border-yellow-400/50 transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-yellow-500/20 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shrink-0">
@@ -55,7 +52,7 @@ const DifficultyContent = () => (
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-lg font-bold text-yellow-300">중급 (Medium)</h2>
+              <h2 className="text-lg font-bold text-yellow-300">⚙️ medium</h2>
               <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs font-bold rounded-full border border-yellow-500/30">
                 적당함
               </span>
@@ -75,7 +72,7 @@ const DifficultyContent = () => (
         </div>
       </div>
 
-      {/* 하 (Easy) */}
+      {/* EASY */}
       <div className="group bg-gradient-to-br from-green-500/15 to-emerald-600/15 rounded-xl p-5 border border-green-500/30 hover:border-green-400/50 transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shrink-0">
@@ -83,7 +80,7 @@ const DifficultyContent = () => (
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-lg font-bold text-green-300">하급 (Easy)</h2>
+              <h2 className="text-lg font-bold text-green-300">🧩 easy</h2>
               <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs font-bold rounded-full border border-green-500/30">
                 초보자용
               </span>
@@ -103,7 +100,7 @@ const DifficultyContent = () => (
         </div>
       </div>
 
-      {/* 알 수 없음 */}
+      {/* UNKNOWN */}
       <div className="group bg-gradient-to-br from-gray-500/15 to-slate-600/15 rounded-xl p-5 border border-gray-500/30 hover:border-gray-400/50 transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 bg-gray-500/20 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shrink-0">
@@ -111,7 +108,7 @@ const DifficultyContent = () => (
           </div>
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-2">
-              <h2 className="text-lg font-bold text-gray-300">알 수 없음 (Unknown)</h2>
+              <h2 className="text-lg font-bold text-gray-300">❓ unknown</h2>
               <span className="px-2 py-1 bg-gray-500/20 text-gray-300 text-xs font-bold rounded-full border border-gray-500/30">
                 미분류
               </span>
@@ -133,28 +130,23 @@ const DifficultyContent = () => (
     </div>
 
     {/* 팁 섹션 */}
-    <div className="bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-indigo-500/10 rounded-xl p-5 border border-blue-500/20">
-      <div className="flex items-start gap-4">
-        <div className="w-10 h-10 bg-blue-500/20 rounded-lg flex items-center justify-center text-xl shrink-0">
-          💡
-        </div>
-        <div>
-          <h3 className="text-lg font-bold text-blue-300 mb-3">난이도 선택 팁</h3>
-          <ul className="space-y-2 text-gray-300">
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0"></span>
-              <span className="text-sm">처음 기여한다면 <strong className="text-green-300">하급(Easy)</strong> 이슈부터 시작해보세요</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0"></span>
-              <span className="text-sm">경험이 있다면 <strong className="text-yellow-300">중급(Medium)</strong> 이슈에 도전해보세요</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0"></span>
-              <span className="text-sm">전문가라면 <strong className="text-red-300">상급(Hard)</strong> 이슈로 큰 기여를 해보세요</span>
-            </li>
-          </ul>
-        </div>
+    <div className="bg-gradient-to-br from-blue-500/10 to-purple-600/10 rounded-xl p-5 border border-blue-500/30">
+      <div>
+        <h3 className="text-lg font-bold text-blue-300 mb-3">난이도 선택 팁</h3>
+        <ul className="space-y-2 text-gray-300">
+          <li className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0"></span>
+            <span className="text-sm">처음 기여한다면 <strong className="text-green-300">🧩 easy</strong> 이슈부터 시작해보세요</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0"></span>
+            <span className="text-sm">경험이 있다면 <strong className="text-yellow-300">⚙️ medium</strong> 이슈에 도전해보세요</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0"></span>
+            <span className="text-sm">전문가라면 <strong className="text-red-300">🔥 hard</strong> 이슈로 큰 기여를 해보세요</span>
+          </li>
+        </ul>
       </div>
     </div>
   </div>

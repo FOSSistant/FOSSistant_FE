@@ -3,7 +3,7 @@ import React from 'react';
 interface UserProfileProps {
   nickname: string;
   avatarUrl: string;
-  tier: 'easy' | 'medium' | 'hard' | 'misc' | string;
+  tier: 'easy' | 'medium' | 'hard' | 'unknown' | string;
 }
 
 export const UserProfile: React.FC<UserProfileProps> = ({ nickname, avatarUrl, tier }) => {
@@ -11,31 +11,31 @@ export const UserProfile: React.FC<UserProfileProps> = ({ nickname, avatarUrl, t
   const tierInfo = {
     easy: { 
       color: 'bg-[var(--color-success-bg)] text-[var(--color-success)] border-[var(--color-success-border)]', 
-      label: '입문자',
+      label: '🧩 easy',
       gradient: 'from-[var(--color-success-bg)] to-[var(--color-success-bg)]',
       glow: 'shadow-[var(--color-success)]'
     },
     medium: { 
       color: 'bg-[var(--color-warning-bg)] text-[var(--color-warning)] border-[var(--color-warning-border)]', 
-      label: '중급자',
+      label: '⚙️ medium',
       gradient: 'from-[var(--color-warning-bg)] to-[var(--color-warning-bg)]',
       glow: 'shadow-[var(--color-warning)]'
     },
     hard: { 
       color: 'bg-[var(--color-danger-bg)] text-[var(--color-danger)] border-[var(--color-danger-border)]', 
-      label: '고급자',
+      label: '🔥 hard',
       gradient: 'from-[var(--color-danger-bg)] to-[var(--color-danger-bg)]',
       glow: 'shadow-[var(--color-danger)]'
     },
-    misc: { 
+    unknown: { 
       color: 'bg-[var(--color-gray-bg)] text-[var(--color-gray)] border-[var(--color-gray-border)]', 
-      label: '기타',
+      label: '❓ unknown',
       gradient: 'from-[var(--color-gray-bg)] to-[var(--color-gray-bg)]',
       glow: 'shadow-[var(--color-gray)]'
     }
   };
   
-  const info = tierInfo[tier as keyof typeof tierInfo] || tierInfo.misc;
+  const info = tierInfo[tier as keyof typeof tierInfo] || tierInfo.unknown;
 
   return (
     <div 

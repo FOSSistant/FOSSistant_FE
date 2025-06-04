@@ -25,12 +25,19 @@ const labelStyle = {
     border: 'border-[var(--color-danger-border)]',
     hover: 'hover:bg-[var(--color-danger-bg)] hover:border-[var(--color-danger)]'
   },
+  UNKNOWN: {
+    bg: 'bg-[var(--color-gray-bg)]',
+    text: 'text-[var(--color-gray)]', 
+    border: 'border-[var(--color-gray-border)]',
+    hover: 'hover:bg-[var(--color-gray-bg)] hover:border-[var(--color-gray)]'
+  },
 };
 
 const labelText = {
-  EASY: '쉬움',
-  MEDIUM: '보통',
-  HARD: '어려움',
+  EASY: '🧩 easy',
+  MEDIUM: '⚙️ medium',
+  HARD: '🔥 hard',
+  UNKNOWN: '❓ unknown',
 };
 
 export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }) => {
@@ -133,10 +140,10 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
             >
               <div className="text-center">
                 <div className="font-semibold text-[var(--text-secondary)] leading-tight mb-1 text-xs">
-                  난이도 의견을 추가해주시면
+                  AI 분류 모델의 정확도 향상을 위해
                 </div>
                 <div className="font-semibold text-[var(--color-primary)] leading-tight text-xs">
-                  오픈소스 라벨링이 더 정확해집니다!
+                  난이도 의견을 추가해주세요!
                 </div>
               </div>
             </button>
@@ -146,7 +153,7 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
                 <span className="text-xs text-[var(--text-muted)]">이 이슈의 난이도는?</span>
               </div>
               <div className="flex gap-2 justify-center">
-                {(['EASY', 'MEDIUM', 'HARD'] as const).map((value, index) => (
+                {(['EASY', 'MEDIUM', 'HARD', 'UNKNOWN'] as const).map((value, index) => (
                   <button
                     key={value}
                     disabled={isSubmitting}
