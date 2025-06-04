@@ -8,22 +8,22 @@ interface DifficultyOpinionProps {
 
 const labelStyle = {
   EASY: {
-    bg: 'bg-green-500/10',
-    text: 'text-green-400',
-    border: 'border-green-400/20',
-    hover: 'hover:bg-green-500/20 hover:border-green-400/30'
+    bg: 'bg-[var(--color-success-bg)]',
+    text: 'text-[var(--color-success)]',
+    border: 'border-[var(--color-success-border)]',
+    hover: 'hover:bg-[var(--color-success-bg)] hover:border-[var(--color-success)]'
   },
   MEDIUM: {
-    bg: 'bg-yellow-500/10', 
-    text: 'text-yellow-400',
-    border: 'border-yellow-400/20',
-    hover: 'hover:bg-yellow-500/20 hover:border-yellow-400/30'
+    bg: 'bg-[var(--color-warning-bg)]', 
+    text: 'text-[var(--color-warning)]',
+    border: 'border-[var(--color-warning-border)]',
+    hover: 'hover:bg-[var(--color-warning-bg)] hover:border-[var(--color-warning)]'
   },
   HARD: {
-    bg: 'bg-red-500/10',
-    text: 'text-red-400', 
-    border: 'border-red-400/20',
-    hover: 'hover:bg-red-500/20 hover:border-red-400/30'
+    bg: 'bg-[var(--color-danger-bg)]',
+    text: 'text-[var(--color-danger)]', 
+    border: 'border-[var(--color-danger-border)]',
+    hover: 'hover:bg-[var(--color-danger-bg)] hover:border-[var(--color-danger)]'
   },
 };
 
@@ -31,12 +31,6 @@ const labelText = {
   EASY: '쉬움',
   MEDIUM: '보통',
   HARD: '어려움',
-};
-
-const labelIcon = {
-  EASY: '🧩',
-  MEDIUM: '⚙️',
-  HARD: '🔥',
 };
 
 export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }) => {
@@ -53,27 +47,27 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
         setShowDifficultySelect(false);
         toast.success('난이도 의견을 추가했습니다.', {
           style: {
-            background: '#1a1a1a',
-            color: '#fff',
-            border: '1px solid #333',
+            background: 'var(--bg-primary)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-primary)',
           },
         });
         fetchDifficultyOpinion();
       } else {
         toast.error('난이도 의견을 추가하는데 실패했습니다.', {
           style: {
-            background: '#1a1a1a',
-            color: '#fff',
-            border: '1px solid #333',
+            background: 'var(--bg-primary)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--border-primary)',
           },
         });
       }
     } catch (error) {
       toast.error('오류가 발생했습니다.', {
         style: {
-          background: '#1a1a1a',
-          color: '#fff',
-          border: '1px solid #333',
+          background: 'var(--bg-primary)',
+          color: 'var(--text-primary)',
+          border: '1px solid var(--border-primary)',
         },
       });
     } finally {
@@ -97,20 +91,16 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
       <Toaster position="top-center" />
       {difficultyOpinion ? (
         <div className="animate-fade-in-scale">
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-[#232323] border border-[#444] mb-3 hover-lift transition-all duration-300">
+          <div className="flex items-center gap-3 p-3 rounded-xl bg-[var(--bg-secondary)] border border-[var(--border-primary)] mb-3 hover-lift transition-all duration-300">
             <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">내가 선택한 난이도:</span>
+              <span className="text-xs text-[var(--text-muted)]">내가 선택한 난이도:</span>
               <div className={`
-                flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-semibold 
+                flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold 
                 ${labelStyle[difficultyOpinion as keyof typeof labelStyle].bg} 
                 ${labelStyle[difficultyOpinion as keyof typeof labelStyle].text} 
                 ${labelStyle[difficultyOpinion as keyof typeof labelStyle].border}
                 border micro-interaction difficulty-badge
-                animate-pulse-glow
               `}>
-                <span className="text-base animate-pulse-glow">
-                  {labelIcon[difficultyOpinion as keyof typeof labelIcon]}
-                </span>
                 <span>{labelText[difficultyOpinion as keyof typeof labelText]}</span>
               </div>
             </div>
@@ -119,10 +109,10 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
                 setDifficultyOpinion(null);
                 setShowDifficultySelect(true);
               }}
-              className="ml-auto text-gray-400 hover:text-white transition-colors duration-200 micro-interaction"
+              className="ml-auto text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors duration-200 micro-interaction"
               title="난이도 변경"
             >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
               </svg>
             </button>
@@ -133,22 +123,19 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
           {!showDifficultySelect ? (
             <button
               className="
-                w-full flex flex-col items-center gap-2 text-sm rounded-xl px-4 py-4
-                bg-gradient-to-br from-[#232323] to-[#1a1a1a] 
-                border border-[#444] shadow-lg
-                hover:from-[#2a2a2a] hover:to-[#212121] hover:border-[#555]
+                w-full flex flex-col items-center gap-2 text-sm rounded-xl px-4 py-3
+                bg-gradient-to-br from-[var(--bg-secondary)] to-[var(--bg-primary)] 
+                border border-[var(--border-primary)] shadow-lg
+                hover:border-[var(--border-secondary)]
                 transition-all duration-300 group micro-interaction hover-lift
               "
               onClick={() => setShowDifficultySelect(true)}
             >
-              <div className="text-3xl mb-1 group-hover:scale-110 transition-transform duration-300 animate-pulse-glow">
-                💡
-              </div>
               <div className="text-center">
-                <div className="font-semibold text-gray-200 leading-tight mb-1">
+                <div className="font-semibold text-[var(--text-secondary)] leading-tight mb-1 text-xs">
                   난이도 의견을 추가해주시면
                 </div>
-                <div className="font-semibold text-blue-400 leading-tight">
+                <div className="font-semibold text-[var(--color-primary)] leading-tight text-xs">
                   오픈소스 라벨링이 더 정확해집니다!
                 </div>
               </div>
@@ -156,15 +143,15 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
           ) : (
             <div className="space-y-3 animate-fade-in-scale">
               <div className="text-center">
-                <span className="text-sm text-gray-400">이 이슈의 난이도는?</span>
+                <span className="text-xs text-[var(--text-muted)]">이 이슈의 난이도는?</span>
               </div>
-              <div className="flex gap-3 justify-center">
+              <div className="flex gap-2 justify-center">
                 {(['EASY', 'MEDIUM', 'HARD'] as const).map((value, index) => (
                   <button
                     key={value}
                     disabled={isSubmitting}
                     className={`
-                      flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold
+                      flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
                       ${labelStyle[value].bg} ${labelStyle[value].text} ${labelStyle[value].border}
                       ${labelStyle[value].hover}
                       border transition-all duration-300 micro-interaction hover-lift
@@ -176,13 +163,10 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
                       postDifficultyOpinion(issueUrl, value);
                     }}
                   >
-                    <span className="text-lg animate-pulse-glow">
-                      {labelIcon[value]}
-                    </span>
                     <span>{labelText[value]}</span>
                     {isSubmitting && (
-                      <div className="ml-2">
-                        <svg className="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+                      <div className="ml-1">
+                        <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
                           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25" />
                           <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75" />
                         </svg>
@@ -194,7 +178,7 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
               <div className="flex justify-center">
                 <button
                   onClick={() => setShowDifficultySelect(false)}
-                  className="text-xs text-gray-500 hover:text-gray-300 transition-colors duration-200 micro-interaction"
+                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors duration-200 micro-interaction"
                 >
                   취소
                 </button>

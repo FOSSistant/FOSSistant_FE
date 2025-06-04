@@ -393,6 +393,7 @@ const SidePanel: React.FC = () => {
             description={issueInfo?.description || ''}
             solution={issueInfo?.solution || ''}
             relatedLinks={issueInfo?.relatedLinks || issueInfo?.caution || ''}
+            highlightedBody={issueInfo?.highlightedBody || ''}
             difficulty={issueInfo?.difficulty as 'easy' | 'medium' | 'hard' | 'misc' || 'misc'}
             isLoading={isLoading}
             issueUrl={issueUrl || ''}
