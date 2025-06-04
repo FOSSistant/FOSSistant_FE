@@ -14,7 +14,8 @@ export interface IssueGuide {
   difficulty: string;
   description: string;
   solution: string;
-  caution: string;
+  relatedLinks: string;
+  caution?: string;
 }
 
 

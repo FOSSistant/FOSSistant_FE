@@ -1,5 +1,5 @@
 import { getIssueLabels, Issue, IssueLabel } from '../api/issueApi';
-import { chunkArray, showErrorMessage } from './utils';
+import { showErrorMessage } from './utils';
 
 // 라벨링 진행 상태 추적
 const labelingStates = new Set<string>();
@@ -208,14 +208,14 @@ export async function labelIssuesBatch(issueUrls: Issue[]): Promise<void> {
   }
 }
 
-// 전체 이슈 URL을 배치별로 순차 처리하는 함수
+// 전체 이슈 URL을 한 번에 처리하는 함수 (배치 처리 제거)
 export async function labelAllIssues(issueUrls: Issue[]): Promise<void> {
   if (!issueUrls || issueUrls.length === 0) {
     console.log('⚠️ 처리할 이슈가 없습니다.');
     return;
   }
 
-  console.log(`🎯 전체 라벨링 시작: ${issueUrls.length}개 이슈`);
+  console.log(`🎯 전체 라벨링 시작: ${issueUrls.length}개 이슈 (한 번에 모든 요청)`);
 
   try {
     // 중복 제거
@@ -227,21 +227,10 @@ export async function labelAllIssues(issueUrls: Issue[]): Promise<void> {
       console.log(`🔄 중복 이슈 제거: ${issueUrls.length} → ${uniqueIssues.length}`);
     }
     
-    // 배치 크기를 작게 조정하여 안정성 향상
-    const batches = chunkArray(uniqueIssues, 20);
-    console.log(`📦 ${batches.length}개 배치로 분할하여 처리`);
+    console.log(`📦 한 번에 ${uniqueIssues.length}개 이슈 처리`);
     
-    for (let i = 0; i < batches.length; i++) {
-      const batch = batches[i];
-      console.log(`📦 배치 ${i + 1}/${batches.length} 처리 시작 (${batch.length}개 이슈)`);
-      
-      await labelIssuesBatch(batch);
-      
-      // 배치 간 짧은 대기 시간 (API 부하 분산)
-      if (i < batches.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 200));
-      }
-    }
+    // 배치 처리 없이 모든 이슈를 한 번에 처리
+    await labelIssuesBatch(uniqueIssues);
     
     console.log('🎉 전체 라벨링 완료');
   } catch (error) {
