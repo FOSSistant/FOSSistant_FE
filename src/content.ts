@@ -214,4 +214,174 @@ history.replaceState = function(data: any, unused: string, url?: string | URL | 
 
 console.log('✅ 전체 사이트 URL 감지 시스템 설정 완료');
 
+// 메시지 리스너 설정
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  console.log('Content script - 메시지 수신:', message.type, message);
+  
+  // PING 메시지에 응답 (Content Script 준비 상태 확인용)
+  if (message.type === 'PING') {
+    console.log('PING 메시지 수신, PONG 응답');
+    sendResponse({ ready: true, url: window.location.href });
+    return true; // 비동기 응답을 위해 true 반환
+  }
+  
+  // 하이라이트 메시지 처리
+  if (message.type === 'HIGHLIGHT_TEXT') {
+    try {
+      highlightTextInPage(message.text);
+      sendResponse({ success: true });
+    } catch (error) {
+      console.error('하이라이트 처리 중 오류:', error);
+      sendResponse({ success: false, error: error instanceof Error ? error.message : '알 수 없는 오류' });
+    }
+    return true; // 비동기 응답을 위해 true 반환
+  }
+  
+  // 다른 메시지 타입은 무시
+  return false;
+});
+
+// 텍스트 하이라이트 기능
+function highlightTextInPage(textToHighlight: string) {
+  if (!textToHighlight || textToHighlight.trim() === '') {
+    console.log('하이라이트할 텍스트가 없음');
+    return;
+  }
+
+  console.log('텍스트 하이라이트 시작:', textToHighlight);
+  
+  // 기존 하이라이트 제거
+  removeExistingHighlights();
+  
+  // GitHub 이슈 본문 영역 찾기
+  const issueBodySelectors = [
+    '.js-comment-body',
+    '.comment-body',
+    '[data-testid="issue-body"]',
+    '.issue-body',
+    '.timeline-comment-group .comment .comment-body'
+  ];
+  
+  let issueBody: Element | null = null;
+  for (const selector of issueBodySelectors) {
+    issueBody = document.querySelector(selector);
+    if (issueBody) {
+      console.log('이슈 본문 영역 찾음:', selector);
+      break;
+    }
+  }
+  
+  if (!issueBody) {
+    console.log('이슈 본문 영역을 찾을 수 없음');
+    return;
+  }
+  
+  // 텍스트 하이라이트 실행
+  const walker = document.createTreeWalker(
+    issueBody,
+    NodeFilter.SHOW_TEXT,
+    null
+  );
+  
+  const textNodes: Text[] = [];
+  let node;
+  
+  while (node = walker.nextNode()) {
+    if (node.nodeValue && node.nodeValue.trim().length > 0) {
+      textNodes.push(node as Text);
+    }
+  }
+  
+  let highlightCount = 0;
+  
+  textNodes.forEach(textNode => {
+    const text = textNode.nodeValue || '';
+    const highlightText = textToHighlight.trim();
+    
+    // 대소문자 구분 없이 검색
+    const index = text.toLowerCase().indexOf(highlightText.toLowerCase());
+    
+    if (index !== -1) {
+      const parent = textNode.parentNode;
+      if (!parent) return;
+      
+      // 텍스트를 3부분으로 나누기: 이전 텍스트, 하이라이트할 텍스트, 이후 텍스트
+      const beforeText = text.substring(0, index);
+      const matchText = text.substring(index, index + highlightText.length);
+      const afterText = text.substring(index + highlightText.length);
+      
+      // 하이라이트 요소 생성
+      const highlightSpan = document.createElement('span');
+      highlightSpan.className = 'fossistant-highlight';
+      highlightSpan.textContent = matchText;
+      highlightSpan.style.backgroundColor = '#ffd700';
+      highlightSpan.style.color = '#000';
+      highlightSpan.style.padding = '2px 4px';
+      highlightSpan.style.borderRadius = '3px';
+      highlightSpan.style.fontWeight = 'bold';
+      highlightSpan.style.boxShadow = '0 2px 4px rgba(255, 215, 0, 0.3)';
+      highlightSpan.style.transition = 'all 0.3s ease';
+      
+      // 새로운 노드들로 교체
+      const fragment = document.createDocumentFragment();
+      
+      if (beforeText) {
+        fragment.appendChild(document.createTextNode(beforeText));
+      }
+      
+      fragment.appendChild(highlightSpan);
+      
+      if (afterText) {
+        fragment.appendChild(document.createTextNode(afterText));
+      }
+      
+      parent.replaceChild(fragment, textNode);
+      highlightCount++;
+      
+      console.log(`하이라이트 적용: "${matchText}"`);
+    }
+  });
+  
+  console.log(`총 ${highlightCount}개 텍스트 하이라이트 완료`);
+  
+  // 하이라이트된 첫 번째 요소로 스크롤
+  if (highlightCount > 0) {
+    setTimeout(() => {
+      const firstHighlight = document.querySelector('.fossistant-highlight');
+      if (firstHighlight) {
+        firstHighlight.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+        
+        // 깜빡임 효과
+        let opacity = 1;
+        const blink = setInterval(() => {
+          (firstHighlight as HTMLElement).style.opacity = opacity.toString();
+          opacity = opacity === 1 ? 0.3 : 1;
+        }, 300);
+        
+        setTimeout(() => {
+          clearInterval(blink);
+          (firstHighlight as HTMLElement).style.opacity = '1';
+        }, 1500);
+      }
+    }, 100);
+  }
+}
+
+// 기존 하이라이트 제거
+function removeExistingHighlights() {
+  const existingHighlights = document.querySelectorAll('.fossistant-highlight');
+  existingHighlights.forEach(highlight => {
+    const parent = highlight.parentNode;
+    if (parent) {
+      parent.replaceChild(document.createTextNode(highlight.textContent || ''), highlight);
+      parent.normalize(); // 인접한 텍스트 노드들을 병합
+    }
+  });
+  
+  console.log(`기존 하이라이트 ${existingHighlights.length}개 제거`);
+}
+
 
