@@ -25,7 +25,7 @@ const labelStyle = {
     border: 'border-[var(--color-danger-border)]',
     hover: 'hover:bg-[var(--color-danger-bg)] hover:border-[var(--color-danger)]'
   },
-  UNKNOWN: {
+  MISC: {
     bg: 'bg-[var(--color-gray-bg)]',
     text: 'text-[var(--color-gray)]', 
     border: 'border-[var(--color-gray-border)]',
@@ -37,7 +37,7 @@ const labelText = {
   EASY: '🧩 easy',
   MEDIUM: '⚙️ medium',
   HARD: '🔥 hard',
-  UNKNOWN: '❓ unknown',
+  MISC: '❓ unknown',
 };
 
 export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }) => {
@@ -153,7 +153,7 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
                 <span className="text-xs text-[var(--text-muted)]">이 이슈의 난이도는?</span>
               </div>
               <div className="flex gap-2 justify-center">
-                {(['EASY', 'MEDIUM', 'HARD', 'UNKNOWN'] as const).map((value, index) => (
+                {(['EASY', 'MEDIUM', 'HARD', 'MISC'] as const).map((value, index) => (
                   <button
                     key={value}
                     disabled={isSubmitting}
