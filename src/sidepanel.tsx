@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { UrlInfo, TrendingRepo, IssueInfo } from './types';
+import { UrlInfo, TrendingRepo } from './types';
 import './index.css';
-import { IssueDetailInfo, IssueProps } from './components/IssueDetailInfo';
+import { IssueDetailInfo } from './components/IssueDetailInfo';
 import { IssueList } from './components/IssueList';
 import { TrendyRepos } from './components/TrendyRepos';
 import { getIssueGuide, IssueGuide } from './api/issueApi';
@@ -132,15 +132,11 @@ const SidePanel: React.FC = () => {
       setPageType('detail');
       await fetchDetailInfo(urlInfo.url);
     } else {
-      console.log('Sidepanel - 기본 페이지 (' + analysis.siteType + ')');
+      await fetchTrendingRepos();
       setPageType(null);
       
-      // GitHub이 아닌 사이트에서는 트렌딩 레포지토리 표시
-      if (!analysis.isGitHub) {
-        await fetchTrendingRepos();
-      }
     }
-  };
+    };
 
   // 테마 로드 함수
   const loadTheme = () => {
