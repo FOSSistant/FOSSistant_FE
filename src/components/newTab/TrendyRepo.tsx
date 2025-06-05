@@ -1,6 +1,48 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { getReposByLanguage, getTrendyRepos, RepoInfo } from '../../api/issueApi';
 
-const TrendyRepo = () => (
+
+
+
+
+
+const TrendyRepo = () => {
+  // 언어 목록
+  const languages: String[] = ["all", "Java", "TypeScript", "JavaScript", "Python", "Jupyter Notebook"];
+  const [currentLanguage, setCurrentLanguage] = useState<string>("all");
+  const [currentRepos, setCurrentRepos] = useState<RepoInfo[]>([
+    {
+      name: "freeCodeCamp",
+      fullName: "freeCodeCamp/freeCodeCamp",
+      description: "freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming, and computer science for free.",
+      stars: 418855,
+      language: "JavaScript",
+      url: "https://github.com/freeCodeCamp/freeCodeCamp",
+    }
+  ]);
+
+  const fetchTrendyRepos = async () => {
+    const repos: RepoInfo[] = await getTrendyRepos();
+    setCurrentRepos(repos);
+  };
+
+  const fetchReposByLanguage = async (language: string) => {
+    if (language === "all") {
+      fetchTrendyRepos();
+    } else {
+    const repos = await getReposByLanguage(language);
+    setCurrentRepos(repos);
+  };
+  }
+
+  
+  useEffect(() => {
+    fetchTrendyRepos();
+  }, []);
+  
+
+
+  return (
   <div className="space-y-6">
     {/* 헤더 섹션 */}
     <div className="text-center mb-6">
@@ -31,112 +73,131 @@ const TrendyRepo = () => (
 
     {/* 추천 레포지토리들 */}
     <div className="space-y-4">
+      <div className="flex justify-between">
       <h3 className="text-lg font-bold text-gray-300">
         추천 레포지토리
       </h3>
+      {languages.map((language) => (
+      <button
+        key={language as string}
+        className={`px-3 py-1 mx-1 rounded-lg border text-sm transition
+          ${currentLanguage === language
+            ? 'bg-orange-500/70 text-white border-orange-400 font-bold shadow'
+            : 'bg-transparent text-gray-400 border-transparent hover:bg-orange-500/20 hover:text-orange-300'}
+        `}
+        onClick={() => {
+          setCurrentLanguage(language as string);
+          fetchReposByLanguage(language as string);
+        }}
+      >
+        {language}
+      </button>))}
+
+      </div>
 
       <div className="grid gap-4">
-        {/* freeCodeCamp */}
-        <div className="group bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-xl p-4 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-[1.02]">
-          <div className="flex-1">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <a 
-                  href="https://github.com/freeCodeCamp/freeCodeCamp" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-base font-bold text-blue-300 hover:text-blue-200 transition-colors"
-                >
-                  freeCodeCamp/freeCodeCamp
-                </a>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="flex items-center gap-1 text-xs text-yellow-400 font-semibold">
-                    ⭐ 418,855
-                  </span>
-                  <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full border border-blue-500/30">
-                    TypeScript
-                  </span>
+        {/* 첫 번째 레포지토리 - 이미 동적임 */}
+        {currentRepos.length > 0 && (
+          <div className="group bg-gradient-to-br from-blue-500/10 to-indigo-600/10 rounded-xl p-4 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex-1">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <a 
+                    href={currentRepos[0].url}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-base font-bold text-blue-300 hover:text-blue-200 transition-colors"
+                  >
+                    {currentRepos[0].fullName}
+                  </a>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="flex items-center gap-1 text-xs text-yellow-400 font-semibold">
+                      ⭐ {currentRepos[0].stars.toLocaleString()}
+                    </span>
+                    <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full border border-blue-500/30">
+                      {currentRepos[0].language}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <p className="text-gray-300 text-sm leading-relaxed mb-3">
-              freeCodeCamp.org's open-source codebase and curriculum. Learn math, programming, and computer science for free.
-            </p>
-            <div className="flex flex-wrap gap-1">
-              <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">교육용</span>
-              <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">초보자 친화적</span>
-              <span className="px-2 py-1 bg-orange-500/20 text-orange-300 text-xs rounded-full">커뮤니티 활발</span>
+              <p className="text-gray-300 text-sm leading-relaxed mb-3">
+                {currentRepos[0].description}
+              </p>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* build-your-own-x */}
-        <div className="group bg-gradient-to-br from-green-500/10 to-emerald-600/10 rounded-xl p-4 border border-green-500/20 hover:border-green-400/40 transition-all duration-300 hover:scale-[1.02]">
-          <div className="flex-1">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <a 
-                  href="https://github.com/codecrafters-io/build-your-own-x" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-base font-bold text-green-300 hover:text-green-200 transition-colors"
-                >
-                  codecrafters-io/build-your-own-x
-                </a>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="flex items-center gap-1 text-xs text-yellow-400 font-semibold">
-                    ⭐ 381,978
-                  </span>
-                  <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full border border-green-500/30">
-                    Markdown
-                  </span>
+        {/* 두 번째 레포지토리 - 동적으로 변경 */}
+        {currentRepos.length > 1 && (
+          <div className="group bg-gradient-to-br from-green-500/10 to-emerald-600/10 rounded-xl p-4 border border-green-500/20 hover:border-green-400/40 transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex-1">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <a 
+                    href={currentRepos[1].url}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-base font-bold text-green-300 hover:text-green-200 transition-colors"
+                  >
+                    {currentRepos[1].fullName}
+                  </a>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="flex items-center gap-1 text-xs text-yellow-400 font-semibold">
+                      ⭐ {currentRepos[1].stars.toLocaleString()}
+                    </span>
+                    <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full border border-green-500/30">
+                      {currentRepos[1].language}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <p className="text-gray-300 text-sm leading-relaxed mb-3">
-              Master programming by recreating your favorite technologies from scratch.
-            </p>
-            <div className="flex flex-wrap gap-1">
-              <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">학습 자료</span>
-              <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">프로젝트 기반</span>
-              <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs rounded-full">실습 중심</span>
+              <p className="text-gray-300 text-sm leading-relaxed mb-3">
+                {currentRepos[1].description}
+              </p>
+              <div className="flex flex-wrap gap-1">
+                <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">인기</span>
+                <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full">트렌딩</span>
+                <span className="px-2 py-1 bg-yellow-500/20 text-yellow-300 text-xs rounded-full">추천</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* 더 많은 추천 레포지토리 (예시) */}
-        <div className="group bg-gradient-to-br from-purple-500/10 to-pink-600/10 rounded-xl p-4 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 hover:scale-[1.02]">
-          <div className="flex-1">
-            <div className="flex items-start justify-between mb-2">
-              <div>
-                <a 
-                  href="https://github.com/microsoft/vscode" 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-base font-bold text-purple-300 hover:text-purple-200 transition-colors"
-                >
-                  microsoft/vscode
-                </a>
-                <div className="flex items-center gap-3 mt-1">
-                  <span className="flex items-center gap-1 text-xs text-yellow-400 font-semibold">
-                    ⭐ 162,159
-                  </span>
-                  <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full border border-purple-500/30">
-                    TypeScript
-                  </span>
+        {/* 세 번째 레포지토리 - 동적으로 변경 */}
+        {currentRepos.length > 2 && (
+          <div className="group bg-gradient-to-br from-purple-500/10 to-pink-600/10 rounded-xl p-4 border border-purple-500/20 hover:border-purple-400/40 transition-all duration-300 hover:scale-[1.02]">
+            <div className="flex-1">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <a 
+                    href={currentRepos[2].url}
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="text-base font-bold text-purple-300 hover:text-purple-200 transition-colors"
+                  >
+                    {currentRepos[2].fullName}
+                  </a>
+                  <div className="flex items-center gap-3 mt-1">
+                    <span className="flex items-center gap-1 text-xs text-yellow-400 font-semibold">
+                      ⭐ {currentRepos[2].stars.toLocaleString()}
+                    </span>
+                    <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full border border-purple-500/30">
+                      {currentRepos[2].language}
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-            <p className="text-gray-300 text-sm leading-relaxed mb-3">
-              Visual Studio Code - 전 세계에서 가장 많이 사용되는 코드 에디터의 오픈소스 버전입니다.
-            </p>
-            <div className="flex flex-wrap gap-1">
-              <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">에디터</span>
-              <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">도구</span>
-              <span className="px-2 py-1 bg-orange-500/20 text-orange-300 text-xs rounded-full">대규모 프로젝트</span>
+              <p className="text-gray-300 text-sm leading-relaxed mb-3">
+                {currentRepos[2].description}
+              </p>
+              <div className="flex flex-wrap gap-1">
+                <span className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded-full">인기</span>
+                <span className="px-2 py-1 bg-green-500/20 text-green-300 text-xs rounded-full">오픈소스</span>
+                <span className="px-2 py-1 bg-orange-500/20 text-orange-300 text-xs rounded-full">활발함</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
 
@@ -180,6 +241,7 @@ const TrendyRepo = () => (
       </p>
     </div>
   </div>
-);
+  );
+};
 
-export default TrendyRepo; 
+export default TrendyRepo;

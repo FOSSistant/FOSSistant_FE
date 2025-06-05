@@ -19,6 +19,18 @@ export interface IssueGuide {
   caution?: string;
 }
 
+export interface RepoInfo {
+  name: string;
+  fullName: string;
+  url: string;
+  description: string;
+  language: string;
+  stars: number;
+}
+
+
+
+
 
 
 // API 서버 주소 변수 선언
@@ -118,5 +130,30 @@ export const getDifficultyOpinion = async (issueId: string): Promise<string | nu
     return result.feedbackTag;
   } catch (error) {
     return null;
+  }
+};
+
+export const getTrendyRepos = async (): Promise<RepoInfo[]> => {
+  try {
+    const response = await fetchWithInterceptors(`${dev_server}/repo/personal`, {
+      method: "GET",
+    });
+    const { result } = await response.json();
+    return result.results;
+  } catch (error) {
+    return [];
+  }
+};
+
+
+export const getReposByLanguage = async (language: String): Promise<RepoInfo[]> => {
+  try {
+    const response = await fetchWithInterceptors(`${dev_server}/repo/category/${language}`, {
+      method: "GET",
+    });
+    const { result } = await response.json();
+    return result.results;
+  } catch (error) {
+    return [];
   }
 };
