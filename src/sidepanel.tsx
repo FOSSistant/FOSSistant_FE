@@ -205,16 +205,6 @@ const SidePanel: React.FC = () => {
     initializeData();
     loadTheme();
 
-    // 메시지 리스너 (URL 업데이트 수신)
-    const messageListener = (message: any) => {
-      console.log('📨 사이드패널 메시지 수신:', message.type, message);
-      if (message.type === 'UPDATE_URL_INFO') {
-        console.log('Sidepanel - URL 업데이트 메시지 수신:', message.data);
-        handleUrlUpdate(message.data);
-      }
-    };
-
-    chrome.runtime.onMessage.addListener(messageListener);
     
     // 주기적으로 현재 활성 탭 정보 확인 (폴백 메커니즘)
     const tabCheckInterval = setInterval(() => {
@@ -258,7 +248,6 @@ const SidePanel: React.FC = () => {
     
     return () => {
       console.log('🧹 사이드패널 정리');
-      chrome.runtime.onMessage.removeListener(messageListener);
       clearInterval(tabCheckInterval);
       window.removeEventListener('focus', handleFocus);
     };
