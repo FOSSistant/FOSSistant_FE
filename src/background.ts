@@ -113,17 +113,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     
     // Storage에 저장
     chrome.storage.local.set({ currentUrlInfo: message.data }).catch(console.error);
-    
-    // 사이드패널에 알림
-    chrome.runtime.sendMessage({
-      type: 'UPDATE_URL_INFO',
-      data: message.data
-    }).catch(() => {}); // 에러 무시 (사이드패널이 열려있지 않을 수 있음)
-    
-    sendResponse({ success: true });
     return;
   }
-  
+
   // 하이라이트 요청 - 단순 전달
   if (message.type === 'HIGHLIGHT_TEXT') {
     const tabId = message.tabId || sender.tab?.id;
