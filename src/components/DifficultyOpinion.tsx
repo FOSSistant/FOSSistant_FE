@@ -158,7 +158,7 @@ export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }
                     key={value}
                     disabled={isSubmitting}
                     className={`
-                      flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold
+                      flex items-center gap-1.5 px-1.5 py-1.5 rounded-lg text-2xs font-semibold
                       ${labelStyle[value].bg} ${labelStyle[value].text} ${labelStyle[value].border}
                       ${labelStyle[value].hover}
                       border transition-all duration-300 micro-interaction hover-lift
