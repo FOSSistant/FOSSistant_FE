@@ -5,6 +5,8 @@ import { handleUrlUpdate, resetLabelingState } from './content/urlHandler';
 
 let isInitialized = false;
 let lastUrl = window.location.href;
+let isProcessingUrlChange = false;
+let urlChangeTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // GitHub 사이트 확인
 function isGitHubSite(): boolean {
@@ -24,25 +26,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       return true;
     } 
   
-  // Background에서 감지한 URL 변경 알림
-  if (message.type === 'URL_NAVIGATION_DETECTED') {
-    console.log('🔄 Background에서 URL 변경 감지 알림:', message.url);
-    // 강제로 URL 변경 처리 실행
-    setTimeout(processUrlChange, 100);
+  // Background에서 감지한 모든 페이지 변화 메시지를 통합 처리
+  if (['URL_NAVIGATION_DETECTED', 'PAGE_REFRESH_DETECTED', 'PAGE_LOAD_COMPLETED'].includes(message.type)) {
+    console.log(`🔄 페이지 변화 감지 (${message.type}):`, message.url);
+    
+    // 디바운싱을 적용한 URL 변경 처리
+    handleUrlChangeWithDebounce(message.url);
     sendResponse({ success: true });
-    console.log(message.url);
-    if (/github\.com\/[^\/]+\/[^\/]+\/issues(\?|$)/.test(message.url)) {
-      // 이 경우에만 이슈 리스트로 간주
-      console.log('🔄 GitHub 이슈 리스트 페이지 감지:', message.url);
-      handleUrlUpdate({
-        url: message.url,
-        title: document.title,
-        favicon: ''
-      });
-      console.log('🔄 GitHub 이슈 리스트 페이지 처리 완료');
-      return true;
-    }
-    return true;  
+    return true;
   }
   
   // 텍스트 하이라이트
@@ -83,6 +74,8 @@ async function initialize(): Promise<void> {
     // 스타일 주입
     injectStyles();
     
+    // URL 변화 감지 설정
+    setupUrlChangeDetection();
     
     // 현재 URL 처리
     await processUrlChange();
@@ -100,45 +93,151 @@ async function initialize(): Promise<void> {
   }
 }
 
+// URL 변화 감지 설정
+function setupUrlChangeDetection(): void {
+  // pushState/replaceState 감지
+  const originalPushState = history.pushState;
+  const originalReplaceState = history.replaceState;
+  
+  history.pushState = function(...args) {
+    originalPushState.apply(history, args);
+    console.log('🔄 pushState 이벤트 감지');
+    handleUrlChangeWithDebounce();
+  };
+  
+  history.replaceState = function(...args) {
+    originalReplaceState.apply(history, args);
+    console.log('🔄 replaceState 이벤트 감지');
+    handleUrlChangeWithDebounce();
+  };
+  
+  // popstate 이벤트 감지 (뒤로가기/앞으로가기)
+  window.addEventListener('popstate', () => {
+    console.log('🔄 popstate 이벤트 감지');
+    handleUrlChangeWithDebounce();
+  });
+  
+  // beforeunload 이벤트 감지 (새로고침/페이지 이탈)
+  window.addEventListener('beforeunload', () => {
+    console.log('🔄 beforeunload 이벤트 감지');
+    lastUrl = ''; // 새로고침 감지를 위해 초기화
+  });
+  
+  // MutationObserver로 DOM 변화 감지 (GitHub의 동적 페이지 변화)
+  if (isGitHubSite()) {
+    let mutationTimeout: ReturnType<typeof setTimeout> | null = null;
+    
+    const observer = new MutationObserver((mutations) => {
+      // 중복 호출 방지를 위한 디바운싱
+      if (mutationTimeout) {
+        clearTimeout(mutationTimeout);
+      }
+      
+      mutationTimeout = setTimeout(() => {
+        // GitHub의 main 컨텐츠 영역이 변경되었는지 확인
+        const hasContentChanges = mutations.some(mutation => {
+          return Array.from(mutation.addedNodes).some(node => {
+            if (node.nodeType === Node.ELEMENT_NODE) {
+              const element = node as Element;
+              return element.matches('main, #js-repo-pjax-container, .application-main') ||
+                     element.querySelector('main, #js-repo-pjax-container, .application-main');
+            }
+            return false;
+          });
+        });
+        
+        if (hasContentChanges) {
+          console.log('🔄 GitHub DOM 변화 감지');
+          handleUrlChangeWithDebounce();
+        }
+      }, 200);
+    });
+    
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    
+    console.log('✅ MutationObserver 설정 완료');
+  }
+}
+
+// 디바운싱을 적용한 URL 변경 처리
+function handleUrlChangeWithDebounce(url?: string): void {
+  // 기존 타이머 취소
+  if (urlChangeTimeout) {
+    clearTimeout(urlChangeTimeout);
+    urlChangeTimeout = null;
+  }
+  
+  // 새 타이머 설정 (300ms 디바운스)
+  urlChangeTimeout = setTimeout(() => {
+    const targetUrl = url || window.location.href;
+    
+    // 새로고침의 경우 강제로 처리하기 위해 lastUrl 초기화
+    if (url && url === lastUrl) {
+      lastUrl = '';
+    }
+    
+    processUrlChange(targetUrl);
+  }, 300);
+  
+  console.log('⏰ URL 변경 디바운스 타이머 설정 (300ms)');
+}
+
 // URL 변경 처리
-async function processUrlChange(): Promise<void> {
-  const currentUrl = window.location.href;
+async function processUrlChange(targetUrl?: string): Promise<void> {
+  if (isProcessingUrlChange) {
+    console.log('🚫 이미 URL 변경 처리 중, 요청 무시');
+    return;
+  }
   
-  if (currentUrl === lastUrl) return;
+  const currentUrl = targetUrl || window.location.href;
   
-  console.log('🔄 URL 변경 감지:', currentUrl);
+  if (currentUrl === lastUrl) {
+    console.log('🚫 동일한 URL 중복 처리 방지:', currentUrl);
+    return;
+  }
+  
+  console.log('🔄 URL 변경 처리 시작:', currentUrl);
+  isProcessingUrlChange = true;
   lastUrl = currentUrl;
   
-  // GitHub에서만 라벨링 상태 리셋
-  if (isGitHubSite()) {
-    resetLabelingState();
-  }
-  
-  // Background에 URL 변경 알림
   try {
-    chrome.runtime.sendMessage({
-      type: 'URL_CHANGED',
-      data: {
-        url: currentUrl,
-        title: document.title,
-        favicon: ''
-      }
-    });
-  } catch (error) {
-    console.error('❌ URL 변경 알림 실패:', error);
-  }
-  
-  // GitHub URL 처리
-  if (isGitHubSite()) {
+    // GitHub에서만 라벨링 상태 리셋
+    if (isGitHubSite()) {
+      resetLabelingState();
+    }
+    
+    // Background에 URL 변경 알림
     try {
-      await handleUrlUpdate({ 
-        url: currentUrl, 
-        title: document.title, 
-        favicon: '' 
+      chrome.runtime.sendMessage({
+        type: 'URL_CHANGED',
+        data: {
+          url: currentUrl,
+          title: document.title,
+          favicon: ''
+        }
       });
     } catch (error) {
-      console.error('❌ URL 핸들러 오류:', error);
+      console.error('❌ URL 변경 알림 실패:', error);
     }
+    
+    // GitHub URL 처리
+    if (isGitHubSite()) {
+      try {
+        await handleUrlUpdate({ 
+          url: currentUrl, 
+          title: document.title, 
+          favicon: '' 
+        });
+      } catch (error) {
+        console.error('❌ URL 핸들러 오류:', error);
+      }
+    }
+  } finally {
+    isProcessingUrlChange = false;
+    console.log('🏁 URL 변경 처리 완료');
   }
 }
 

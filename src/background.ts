@@ -159,33 +159,70 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   return false;
 });
 
-// 탭 업데이트 리스너 - URL 변경 감지에만 집중
+// 탭별 이벤트 디바운싱을 위한 타이머 관리
+const tabEventTimers = new Map<number, ReturnType<typeof setTimeout>>();
+
+// 탭 업데이트 리스너 - 새로고침 및 URL 변경 감지 (디바운싱 적용)
 chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
-  // URL 변경 감지
-  if (changeInfo.url && changeInfo.url.includes('github.com')) {
+  // GitHub 페이지가 아니면 무시
+  if (!tab.url?.includes('github.com')) {
+    return;
+  }
+
+  // 기존 타이머 취소
+  if (tabEventTimers.has(tabId)) {
+    clearTimeout(tabEventTimers.get(tabId)!);
+    tabEventTimers.delete(tabId);
+  }
+
+  // URL 변경 감지 (새로운 페이지로 이동) - 최우선 처리
+  if (changeInfo.url) {
     console.log(`🔄 GitHub URL 변경 감지 [${tabId}]: ${changeInfo.url}`);
     
-    // Content script에 URL 변경 알림
-    setTimeout(async () => {
-      try {
-        await sendMessageToTab(tabId, {
-          type: 'URL_NAVIGATION_DETECTED',
-          url: changeInfo.url
-        });
-        console.log(`✅ URL 변경 알림 전송 [${tabId}]`);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        console.log(`⚠️ URL 변경 알림 실패 [${tabId}]:`, errorMessage);
-      }
-    }, 300);
+    // 즉시 처리 (디바운싱 없이)
+    try {
+      await sendMessageToTab(tabId, {
+        type: 'URL_NAVIGATION_DETECTED',
+        url: changeInfo.url
+      });
+      console.log(`✅ URL 변경 알림 전송 [${tabId}]`);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      console.log(`⚠️ URL 변경 알림 실패 [${tabId}]:`, errorMessage);
+    }
+    return; // URL 변경시에는 다른 처리 생략
   }
   
-  // 페이지 로딩 완료 시 (GitHub만)
-  if (changeInfo.status === 'complete' && tab.url?.includes('github.com')) {
+  // 새로고침 감지 (로딩 시작, URL 변경 없음)
+  if (changeInfo.status === 'loading' && !changeInfo.url) {
+    console.log(`🔄 GitHub 페이지 새로고침 감지 [${tabId}]: ${tab.url}`);
+    
+    // 디바운싱 적용 (200ms)
+    const timer = setTimeout(async () => {
+      try {
+        await sendMessageToTab(tabId, {
+          type: 'PAGE_REFRESH_DETECTED',
+          url: tab.url
+        });
+        console.log(`✅ 새로고침 알림 전송 [${tabId}]`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(`⚠️ 새로고침 알림 실패 [${tabId}]:`, errorMessage);
+      }
+      tabEventTimers.delete(tabId);
+    }, 200);
+    
+    tabEventTimers.set(tabId, timer);
+    return;
+  }
+  
+  // 페이지 로딩 완료
+  if (changeInfo.status === 'complete') {
     console.log(`📄 GitHub 페이지 로딩 완료 [${tabId}]: ${tab.url}`);
     
-    // Content script 상태 확인 및 필요시 주입
-    setTimeout(async () => {
+    // 디바운싱 적용 (500ms)
+    const timer = setTimeout(async () => {
+      // Content script 상태 확인 및 필요시 주입
       const isReady = await isContentScriptReady(tabId);
       console.log(`${isReady ? '✅' : '⚠️'} Content script 상태 [${tabId}]: ${isReady ? '준비됨' : '준비 안됨'}`);
       
@@ -193,8 +230,27 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
       if (!isReady) {
         console.log(`🔄 Content script 자동 주입 [${tabId}]`);
         await injectContentScript(tabId);
+        
+        // 주입 후 추가 대기
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
-    }, 1000);
+      
+      // 페이지 로딩 완료 알림
+      try {
+        await sendMessageToTab(tabId, {
+          type: 'PAGE_LOAD_COMPLETED',
+          url: tab.url
+        });
+        console.log(`✅ 페이지 로딩 완료 알림 전송 [${tabId}]`);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        console.log(`⚠️ 페이지 로딩 완료 알림 실패 [${tabId}]:`, errorMessage);
+      }
+      
+      tabEventTimers.delete(tabId);
+    }, 500);
+    
+    tabEventTimers.set(tabId, timer);
   }
 });
 
