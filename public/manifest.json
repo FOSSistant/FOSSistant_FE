@@ -3,6 +3,7 @@
   "name": "FOSSistant",
   "version": "1.0.0",
   "description": "FOSSistant",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApwVgjdQyXj9Up6X8N6drrO4xBj1sUUzErzwIy0TY4rvZvVTGrI3vTpwRrrfhLlBxGOuLo8dNz4DJEGv07XOpanIO+0IIo6jXRGyMVrRFKqvmfkP7myg1nvxtRzgwz3ibxnFyepqErO9tQ0wLFEuYQCfntinz7LfvapoJqZfOD/pGaES/6U7oLBeOYYztnx/dwzKJxP4m8eXwMAGTdqA/GyIUw/9XpTSUSRGIzW/UPgGjk3Z8r8bD1H0J4mpVduLWvWIwx6K2Un6OUDm8w9kF5QYw0lETfF3vsclsbH8yfvViK8rkTdLoY00dADTx31VfmH3lMZ5ho9NKW30+TVyXEwIDAQAB",
   "permissions": [
     "storage",
     "tabs",
