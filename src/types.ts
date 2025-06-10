@@ -12,6 +12,9 @@ export interface TrendingRepo {
   url: string;
 }
 
+// 난이도 타입 정의 (5개 라벨)
+export type DifficultyType = 'easy' | 'medium' | 'hard' | 'misc' | 'unknown';
+
 export interface Note {
   id: string;
   content: string;

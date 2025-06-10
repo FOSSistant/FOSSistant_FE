@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
-import { UrlInfo, TrendingRepo } from './types';
+import { UrlInfo, TrendingRepo, DifficultyType } from './types';
 import './index.css';
 import { IssueDetailInfo } from './components/IssueDetailInfo';
 import { IssueList } from './components/IssueList';
@@ -511,7 +511,7 @@ const SidePanel: React.FC = () => {
             solution={issueInfo?.solution || ''}
             relatedLinks={issueInfo?.relatedLinks || issueInfo?.caution || ''}
             highlightedBody={issueInfo?.highlightedBody || ''}
-            difficulty={issueInfo?.difficulty as 'easy' | 'medium' | 'hard' | 'misc' || 'misc'}
+            difficulty={issueInfo?.difficulty as DifficultyType || 'unknown'}
             isLoading={isLoading}
             issueUrl={issueUrl || ''}
           />

@@ -3,6 +3,7 @@ import { DifficultyOpinion } from './DifficultyOpinion';
 import { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import { toast, Toaster } from 'react-hot-toast';
+import { DifficultyType } from '../types';
 
 // 새로운 API 응답 타입
 export interface ApiResponse {
@@ -25,14 +26,14 @@ export interface IssueProps {
   solution: string;
   relatedLinks: string;
   highlightedBody: string;
-  difficulty: 'easy' | 'medium' | 'hard' | 'misc';
+  difficulty: DifficultyType;
   isLoading?: boolean;
-  myDifficulty?: 'easy' | 'medium' | 'hard' | null;
-  onSubmitMyDifficulty?: (difficulty: 'easy' | 'medium' | 'hard') => void;
+  myDifficulty?: DifficultyType | null;
+  onSubmitMyDifficulty?: (difficulty: DifficultyType) => void;
   issueUrl: string;
 }
 
-const getDifficultyInKorean = (difficulty: IssueProps['difficulty']): string => {
+const getDifficultyInKorean = (difficulty: DifficultyType): string => {
   switch (difficulty) {
     case 'easy':
       return '🧩 easy';
@@ -41,13 +42,15 @@ const getDifficultyInKorean = (difficulty: IssueProps['difficulty']): string => 
     case 'hard':
       return '🔥 hard';
     case 'misc':
+      return '❓ misc';
+    case 'unknown':
       return '❓ unknown';
     default:
       return '❓ unknown';
   }
 };
 
-const getDifficultyColor = (difficulty: IssueProps['difficulty']): string => {
+const getDifficultyColor = (difficulty: DifficultyType): string => {
   switch (difficulty) {
     case 'easy':
       return 'text-[var(--color-success)]';
@@ -57,12 +60,14 @@ const getDifficultyColor = (difficulty: IssueProps['difficulty']): string => {
       return 'text-[var(--color-danger)]';
     case 'misc':
       return 'text-[var(--color-gray)]';
+    case 'unknown':
+      return 'text-[var(--color-gray)]';
     default:
       return 'text-[var(--color-gray)]';
   }
 };
 
-const getDifficultyIcon = (difficulty: IssueProps['difficulty']): string => {
+const getDifficultyIcon = (difficulty: DifficultyType): string => {
   switch (difficulty) {
     case 'easy':
       return '🧩';
@@ -71,6 +76,8 @@ const getDifficultyIcon = (difficulty: IssueProps['difficulty']): string => {
     case 'hard':
       return '🔥';
     case 'misc':
+      return '❓';
+    case 'unknown':
       return '❓';
     default:
       return '❓';
@@ -330,10 +337,14 @@ export const IssueDetailInfo = ({
                   style={{ 
                     backgroundColor: difficulty === 'easy' ? 'var(--color-success-bg)' :
                                    difficulty === 'medium' ? 'var(--color-warning-bg)' :
-                                   difficulty === 'hard' ? 'var(--color-danger-bg)' : 'var(--color-gray-bg)',
+                                   difficulty === 'hard' ? 'var(--color-danger-bg)' :
+                                   difficulty === 'misc' ? 'var(--color-gray-bg)' :
+                                   difficulty === 'unknown' ? 'var(--color-gray-bg)' : 'var(--color-gray-bg)',
                     border: `1px solid ${difficulty === 'easy' ? 'var(--color-success-border)' :
                                        difficulty === 'medium' ? 'var(--color-warning-border)' :
-                                       difficulty === 'hard' ? 'var(--color-danger-border)' : 'var(--color-gray-border)'}`
+                                       difficulty === 'hard' ? 'var(--color-danger-border)' :
+                                       difficulty === 'misc' ? 'var(--color-gray-border)' :
+                                       difficulty === 'unknown' ? 'var(--color-gray-border)' : 'var(--color-gray-border)'}`
                   }}>
               {getDifficultyInKorean(difficulty)}
             </span>

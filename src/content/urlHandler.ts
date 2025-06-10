@@ -9,6 +9,7 @@ let lastProcessedUrl = '';
 let labelingTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // GitHub 페이지 로딩 완료 대기 함수
+
 async function waitForGitHubPageLoad(): Promise<boolean> {
   return new Promise((resolve) => {
     let attempts = 0;

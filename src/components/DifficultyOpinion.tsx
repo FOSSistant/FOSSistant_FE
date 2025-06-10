@@ -31,13 +31,20 @@ const labelStyle = {
     border: 'border-[var(--color-gray-border)]',
     hover: 'hover:bg-[var(--color-gray-bg)] hover:border-[var(--color-gray)]'
   },
+  UNKNOWN: {
+    bg: 'bg-[var(--color-gray-bg)]',
+    text: 'text-[var(--color-gray)]', 
+    border: 'border-[var(--color-gray-border)]',
+    hover: 'hover:bg-[var(--color-gray-bg)] hover:border-[var(--color-gray)]'
+  },
 };
 
 const labelText = {
   EASY: '🧩 easy',
   MEDIUM: '⚙️ medium',
   HARD: '🔥 hard',
-  MISC: '❓ unknown',
+  MISC: '❓ misc',
+  UNKNOWN: '❓ unknown',
 };
 
 export const DifficultyOpinion: React.FC<DifficultyOpinionProps> = ({ issueUrl }) => {

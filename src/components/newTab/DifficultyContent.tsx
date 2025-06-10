@@ -10,7 +10,7 @@ const DifficultyContent = () => (
         </h1>
       </div>
       <p className="text-gray-400 text-base">
-        이슈의 복잡도와 해결 난이도에 따라 4단계로 분류됩니다
+        이슈의 복잡도와 해결 난이도에 따라 5단계로 분류됩니다
       </p>
     </div>
 
@@ -100,6 +100,34 @@ const DifficultyContent = () => (
         </div>
       </div>
 
+      {/* MISC */}
+      <div className="group bg-gradient-to-br from-purple-500/15 to-indigo-600/15 rounded-xl p-5 border border-purple-500/30 hover:border-purple-400/50 transition-all duration-300 hover:scale-[1.02]">
+        <div className="flex items-start gap-4">
+          <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center text-2xl group-hover:scale-110 transition-transform shrink-0">
+            ❓
+          </div>
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h2 className="text-lg font-bold text-purple-300">❓ misc</h2>
+              <span className="px-2 py-1 bg-purple-500/20 text-purple-300 text-xs font-bold rounded-full border border-purple-500/30">
+                기타
+              </span>
+            </div>
+            <p className="text-gray-300 text-sm leading-relaxed mb-3">
+              개발 이슈가 아닌 문서 수정, 설정 변경, 기타 작업 등이 포함됩니다.
+            </p>
+            <div className="bg-purple-500/10 rounded-lg p-3 border border-purple-500/20">
+              <p className="text-xs text-gray-400 mb-2 font-semibold">예시:</p>
+              <div className="flex flex-wrap gap-1">
+                <span className="px-2 py-1 bg-purple-500/20 text-purple-200 text-xs rounded-full">README 수정</span>
+                <span className="px-2 py-1 bg-purple-500/20 text-purple-200 text-xs rounded-full">설정 파일 업데이트</span>
+                <span className="px-2 py-1 bg-purple-500/20 text-purple-200 text-xs rounded-full">번역 작업</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* UNKNOWN */}
       <div className="group bg-gradient-to-br from-gray-500/15 to-slate-600/15 rounded-xl p-5 border border-gray-500/30 hover:border-gray-400/50 transition-all duration-300 hover:scale-[1.02]">
         <div className="flex items-start gap-4">
@@ -145,6 +173,10 @@ const DifficultyContent = () => (
           <li className="flex items-start gap-2">
             <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0"></span>
             <span className="text-sm">전문가라면 <strong className="text-red-300">🔥 hard</strong> 이슈로 큰 기여를 해보세요</span>
+          </li>
+          <li className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 bg-blue-400 rounded-full mt-2 shrink-0"></span>
+            <span className="text-sm">개발 외 기여를 원한다면 <strong className="text-purple-300">❓ misc</strong> 이슈를 확인해보세요</span>
           </li>
         </ul>
       </div>

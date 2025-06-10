@@ -54,7 +54,9 @@ function createDifficultyLabel(tier: string, shouldHighlight: boolean = false): 
   
   const icon = tier === 'easy' ? '🧩' : 
               tier === 'medium' ? '⚙️' :
-              tier === 'hard' ? '🔥' : '❓';
+              tier === 'hard' ? '🔥' :
+              tier === 'misc' ? '❓' :
+              tier === 'unknown' ? '❓' : '❓';
               
   newLabel.innerHTML = `
     <span class="tier-icon">${icon}</span>
@@ -63,13 +65,19 @@ function createDifficultyLabel(tier: string, shouldHighlight: boolean = false): 
   
   newLabel.style.backgroundColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
                                  tier === 'medium' ? 'rgba(255, 152, 0, 0.1)' :
-                                 tier === 'hard' ? 'rgba(229, 57, 53, 0.1)' : 'rgba(110, 119, 129, 0.1)';
+                                 tier === 'hard' ? 'rgba(229, 57, 53, 0.1)' :
+                                 tier === 'misc' ? 'rgba(110, 119, 129, 0.1)' :
+                                 tier === 'unknown' ? 'rgba(110, 119, 129, 0.1)' : 'rgba(110, 119, 129, 0.1)';
   newLabel.style.color = tier === 'easy' ? '#43a047' : 
                         tier === 'medium' ? '#f57c00' :
-                        tier === 'hard' ? '#e53935' : '#6e7781';
+                        tier === 'hard' ? '#e53935' :
+                        tier === 'misc' ? '#6e7781' :
+                        tier === 'unknown' ? '#6e7781' : '#6e7781';
   newLabel.style.borderColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.2)' : 
                               tier === 'medium' ? 'rgba(255, 152, 0, 0.2)' :
-                              tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' : 'rgba(110, 119, 129, 0.2)';
+                              tier === 'hard' ? 'rgba(229, 57, 53, 0.2)' :
+                              tier === 'misc' ? 'rgba(110, 119, 129, 0.2)' :
+                              tier === 'unknown' ? 'rgba(110, 119, 129, 0.2)' : 'rgba(110, 119, 129, 0.2)';
   
   // 하이라이트 효과 추가
   if (shouldHighlight) {
