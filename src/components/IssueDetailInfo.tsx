@@ -84,6 +84,8 @@ const getDifficultyIcon = (difficulty: DifficultyType): string => {
   }
 };
 
+
+
 // 개선된 로딩 컴포넌트
 const LoadingSpinner = () => (
   <span className="inline-block align-middle mr-2">
@@ -160,6 +162,51 @@ const ExpandableSection = ({
                 {children}
                 <span className="ml-1 text-xs opacity-70">↗</span>
               </a>
+            ),
+            ol: ({ children, ...props }) => (
+              <ol className="list-decimal list-inside space-y-1 ml-4" {...props}>
+                {children}
+              </ol>
+            ),
+            ul: ({ children, ...props }) => (
+              <ul className="list-disc list-inside space-y-1 ml-4" {...props}>
+                {children}
+              </ul>
+            ),
+            li: ({ children, ...props }) => (
+              <li className="text-[var(--text-secondary)] leading-relaxed" {...props}>
+                {children}
+              </li>
+            ),
+            p: ({ children, ...props }) => (
+              <p className="mb-2 last:mb-0 leading-relaxed" {...props}>
+                {children}
+              </p>
+            ),
+            h1: ({ children, ...props }) => (
+              <h1 className="text-lg font-bold mb-2 text-[var(--text-primary)]" {...props}>
+                {children}
+              </h1>
+            ),
+            h2: ({ children, ...props }) => (
+              <h2 className="text-base font-bold mb-2 text-[var(--text-primary)]" {...props}>
+                {children}
+              </h2>
+            ),
+            h3: ({ children, ...props }) => (
+              <h3 className="text-sm font-bold mb-2 text-[var(--text-primary)]" {...props}>
+                {children}
+              </h3>
+            ),
+            code: ({ children, ...props }) => (
+              <code className="bg-[var(--bg-primary)] text-[var(--color-primary)] px-1 py-0.5 rounded text-xs font-mono" {...props}>
+                {children}
+              </code>
+            ),
+            pre: ({ children, ...props }) => (
+              <pre className="bg-[var(--bg-primary)] p-3 rounded-lg overflow-x-auto text-xs font-mono border border-[var(--border-primary)]" {...props}>
+                {children}
+              </pre>
             ),
           }}
         >
