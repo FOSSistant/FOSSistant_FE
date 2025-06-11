@@ -47,7 +47,7 @@ function createLoadingLabel(): HTMLSpanElement {
 }
 
 // 난이도 라벨을 생성하는 함수
-function createDifficultyLabel(tier: string, shouldHighlight: boolean = false): HTMLSpanElement {
+function createDifficultyLabel(tier: string, shouldHighlight: boolean = false, score?: number): HTMLSpanElement {
   const newLabel = document.createElement('span');
   newLabel.className = 'Label custom-label custom-label-style';
   
@@ -61,6 +61,16 @@ function createDifficultyLabel(tier: string, shouldHighlight: boolean = false): 
     <span class="tier-icon">${icon}</span>
     <span class="tier-text">${tier}</span>
   `;
+  
+  // 툴팁 텍스트 설정
+  let tooltipText = tier;
+  if (score !== undefined) {
+    tooltipText += ` (score: ${Math.round(score * 100)}%)`;
+  }
+  if (shouldHighlight) {
+    tooltipText += '\n추천: 당신의 수준에 적합한 이슈입니다!';
+  }
+  newLabel.title = tooltipText;
   
   newLabel.style.backgroundColor = tier === 'easy' ? 'rgba(67, 160, 71, 0.1)' : 
                                  tier === 'medium' ? 'rgba(255, 152, 0, 0.1)' :
@@ -83,7 +93,6 @@ function createDifficultyLabel(tier: string, shouldHighlight: boolean = false): 
     newLabel.style.boxShadow = '0 0 8px rgba(255, 193, 7, 0.6)';
     newLabel.style.border = '2px solid #ffc107';
     newLabel.style.animation = 'recommend-pulse 2s ease-in-out infinite';
-    newLabel.title = '추천: 당신의 수준에 적합한 이슈입니다!';
   }
   
   return newLabel;
@@ -208,7 +217,7 @@ export async function labelIssuesBatch(issueUrls: Issue[]): Promise<void> {
 
         const userLevel = await getUserLevel();
         const shouldHighlight = shouldAddHighlight(userLevel, tier);
-        const difficultyLabel = createDifficultyLabel(tier, shouldHighlight);
+        const difficultyLabel = createDifficultyLabel(tier, shouldHighlight, issueLabel.score);
         titleElement.insertBefore(difficultyLabel, titleElement.firstChild);
       } catch (error) {
         continue;

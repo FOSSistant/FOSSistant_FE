@@ -7,6 +7,7 @@ export interface Issue {
 export interface IssueLabel {
   issueId: string;
   difficulty: string;
+  score: number;
 }
 
 export interface IssueGuide {
