@@ -23,10 +23,6 @@ const SidePanel: React.FC = () => {
   const [trendingReposCache, setTrendingReposCache] = useState<TrendingRepo[] | null>(null);
   const [isFetchingTrending, setIsFetchingTrending] = useState(false);
 
-  // 디바운스 관리를 위한 상태 추가
-  const [currentRequest, setCurrentRequest] = useState<AbortController | null>(null);
-  const [debounceTimer, setDebounceTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
-
   // URL 분석 함수
   const analyzeUrl = (url: string) => {
     // 크롬 새 탭 확인
@@ -121,21 +117,7 @@ const SidePanel: React.FC = () => {
 
   // URL 처리 및 페이지 타입 설정 로직을 함수로 분리
   const handleUrlUpdate = async (urlInfo: UrlInfo) => {
-    // 이전 요청이 있다면 취소
-    if (currentRequest) {
-      currentRequest.abort();
-    }
     
-    // 이전 디바운스 타이머가 있다면 취소
-    if (debounceTimer) {
-      clearTimeout(debounceTimer);
-    }
-
-    // 새로운 AbortController 생성
-    const abortController = new AbortController();
-    setCurrentRequest(abortController);
-
-    // 상태 업데이트는 즉시 수행
     setCurrentUrl(urlInfo);
     
     // URL 분석을 통한 페이지 타입 결정
@@ -145,38 +127,13 @@ const SidePanel: React.FC = () => {
       setPageType('list');
     } else if (analysis.isIssueDetail) {
       setPageType('detail');
-      
-      // API 호출을 디바운스
-      const timer = setTimeout(async () => {
-        try {
-          await fetchDetailInfo(urlInfo.url, abortController.signal);
-        } catch (error: unknown) {
-          if (error instanceof Error && error.name === 'AbortError') {
-            return; // 요청이 취소된 경우 무시
-          }
-          throw error;
-        }
-      }, 300); // 300ms 디바운스
-      
-      setDebounceTimer(timer);
+      await fetchDetailInfo(urlInfo.url);
     } else {
+      await fetchTrendingRepos();
       setPageType(null);
       
-      // API 호출을 디바운스
-      const timer = setTimeout(async () => {
-        try {
-          await fetchTrendingRepos(abortController.signal);
-        } catch (error: unknown) {
-          if (error instanceof Error && error.name === 'AbortError') {
-            return; // 요청이 취소된 경우 무시
-          }
-          throw error;
-        }
-      }, 300); // 300ms 디바운스
-      
-      setDebounceTimer(timer);
     }
-  };
+    };
 
   // 테마 로드 함수
   const loadTheme = () => {
@@ -272,61 +229,104 @@ const SidePanel: React.FC = () => {
     };
   }, [isGithubConnected, currentUrl?.url]); // dependency에 추가
 
-  const fetchDetailInfo = async (url: string, signal?: AbortSignal) => {
-    if (fetchingUrls.has(url)) return; // 이미 가져오는 중이면 중복 요청 방지
+  const fetchDetailInfo = async (url: string) => {
+    // URL 분석을 통한 정보 추출
+    const analysis = analyzeUrl(url);
+    
+    if (!analysis.isIssueDetail || !analysis.owner || !analysis.repo || !analysis.issueNumber) {
+      setIssueInfo(null);
+      setIssueUrl(null);
+      return;
+    }
+    
+    const issueId = `https://github.com/${analysis.owner}/${analysis.repo}/issues/${analysis.issueNumber}`;
+    
+    // 캐시된 데이터가 있으면 사용
+    if (issueCache.has(issueId)) {
+      const cachedInfo = issueCache.get(issueId);
+      setIssueInfo(cachedInfo || null);
+      setIssueUrl(issueId);
+      return;
+    }
+    
+    // 이미 요청 중인 URL이면 중복 호출 방지
+    if (fetchingUrls.has(issueId)) {  
+      return;
+    }
+    
+    // 요청 시작
+    setFetchingUrls(prev => new Set(prev).add(issueId));
+    setIsLoading(true);
     
     try {
-      setFetchingUrls(prev => new Set(prev).add(url));
-      setIsLoading(true);
-      setIssueUrl(url);
-
-      const cachedIssue = issueCache.get(url);
-      if (cachedIssue) {
-        setIssueInfo(cachedIssue);
-        return;
-      }
-
-      const response = await getIssueGuide({ issueId: url });
-      setIssueInfo(response);
-      setIssueCache(prev => new Map(prev).set(url, response));
       
-    } catch (error: unknown) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return; // 요청이 취소된 경우 무시
-      }
+      const issueGuide: IssueGuide | null = await getIssueGuide({ issueId });
+      
+      // 캐시에 저장
+      setIssueCache(prev => new Map(prev).set(issueId, issueGuide));
+      
+      setIssueUrl(issueId);
+      setIssueInfo(issueGuide);
+      
+    } catch (error) {
+      
+      // 실패한 경우도 캐시에 저장 (null로 저장해서 재요청 방지)
+      setIssueCache(prev => new Map(prev).set(issueId, null));
       setIssueInfo(null);
+      setIssueUrl(issueId);
     } finally {
       setIsLoading(false);
+      // 요청 완료 후 제거
       setFetchingUrls(prev => {
         const newSet = new Set(prev);
-        newSet.delete(url);
+        newSet.delete(issueId);
         return newSet;
       });
     }
   };
 
-  const fetchTrendingRepos = async (signal?: AbortSignal) => {
-    if (isFetchingTrending) return;
+  const fetchTrendingRepos = async () => {
+    // 캐시된 데이터가 있으면 사용
+    if (trendingReposCache) {
+      setTrendingRepos(trendingReposCache);
+      return;
+    }
+    
+    // 이미 요청 중이면 중복 호출 방지
+    if (isFetchingTrending) {
+      return;
+    }
+    
+    setIsFetchingTrending(true);
+    setIsLoading(true);
     
     try {
-      setIsFetchingTrending(true);
-      
-      if (trendingReposCache) {
-        setTrendingRepos(trendingReposCache);
-        return;
+      const response = await fetch('https://api.github.com/search/repositories?q=stars:>1000&sort=stars&order=desc&per_page=5');
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const response = await fetch('YOUR_API_ENDPOINT', { signal });
       const data = await response.json();
       
-      setTrendingRepos(data);
-      setTrendingReposCache(data);
-    } catch (error: unknown) {
-      if (error instanceof Error && error.name === 'AbortError') {
-        return; // 요청이 취소된 경우 무시
+      if (!data || !data.items || !Array.isArray(data.items)) {
+        throw new Error('Invalid API response format');
       }
+
+      const repos = data.items.map((repo: any) => ({
+        name: repo.full_name,
+        description: repo.description || 'No description available',
+        stars: repo.stargazers_count,
+        language: repo.language || 'Unknown',
+        url: repo.html_url
+      }));
+      
+      // 캐시에 저장
+      setTrendingReposCache(repos);
+      setTrendingRepos(repos);
+      
+    } catch (error) {
       setTrendingRepos([]);
     } finally {
+      setIsLoading(false);
       setIsFetchingTrending(false);
     }
   };
