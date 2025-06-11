@@ -2,8 +2,7 @@ import { BASE_URL, fetchWithInterceptors } from "../config/fetchWithInterceptors
 import { TokenRequest, TokenResponse, UserProfile } from "../types";
 
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID as string;
-const REDIRECT_URI = `https://${chrome.runtime.id}.chromiumapp.org/`;
-const GITHUB_CLIENT_SECRET = "f70b4ed63c748aeedfeb88b3b42570ab8295dc43"
+const REDIRECT_URI = `https://emoioalldchmkpkhddjddjjkpamdpigj.chromiumapp.org/`;
 const dev_server = process.env.REACT_APP_DEV_SERVER as string;// github로부터 이슈들 body 정보 가져오기
 
 export const requestGitHubCode = async (): Promise<boolean> => {
