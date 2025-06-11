@@ -1,15 +1,12 @@
 import { requestGitHubCode, patchMyLevel } from './api/githubAuth';
 
-console.log('🚀 Background script 시작');
 
 // Content script 주입 함수
 async function injectContentScript(tabId: number): Promise<boolean> {
   try {
-    console.log(`💉 Content script 주입 시도 [${tabId}]`);
     
     const tab = await chrome.tabs.get(tabId);
     if (!tab.url?.startsWith('http')) {
-      console.log(`❌ HTTP(S) 페이지가 아님 [${tabId}]`);
       return false;
     }
     
@@ -18,17 +15,14 @@ async function injectContentScript(tabId: number): Promise<boolean> {
       files: ['content.js']
     });
     
-    console.log(`✅ Content script 주입 완료 [${tabId}]`);
     return true;
   } catch (error) {
-    console.error(`❌ Content script 주입 실패 [${tabId}]:`, error);
     return false;
   }
 }
 
 // 강화된 메시지 전송 함수 (자동 주입 포함)
 async function sendMessageToTab(tabId: number, message: any): Promise<any> {
-  console.log(`📤 메시지 전송 [${tabId}]:`, message.type);
   
   // 첫 번째 시도
   try {
@@ -42,16 +36,13 @@ async function sendMessageToTab(tabId: number, message: any): Promise<any> {
       });
     });
     
-    console.log(`✅ 메시지 응답 [${tabId}]:`, response);
     return response;
     
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    console.log(`⚠️ 첫 번째 메시지 전송 실패 [${tabId}]:`, errorMessage);
     
     // "Could not establish connection" 오류인 경우 content script 주입 시도
     if (errorMessage.includes('Could not establish connection')) {
-      console.log(`🔄 Content script 주입 후 재시도 [${tabId}]`);
       
       const injected = await injectContentScript(tabId);
       if (!injected) {
@@ -68,7 +59,6 @@ async function sendMessageToTab(tabId: number, message: any): Promise<any> {
             console.error(`❌ 재시도 메시지 전송 실패 [${tabId}]:`, chrome.runtime.lastError.message);
             reject(new Error(chrome.runtime.lastError.message));
           } else {
-            console.log(`✅ 재시도 메시지 응답 [${tabId}]:`, response);
             resolve(response);
           }
         });
@@ -92,12 +82,10 @@ async function isContentScriptReady(tabId: number): Promise<boolean> {
 
 // Service Worker 이벤트
 chrome.runtime.onInstalled.addListener(() => {
-  console.log('🔧 Extension installed');
 });
 
 // 메시지 리스너 (핵심 기능만)
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('📨 Background 메시지:', message.type);
   
   // GitHub 코드 요청
   if (message.type === 'REQUEST_GITHUB_CODE') {
@@ -109,7 +97,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // URL 변경 알림 - 단순 저장 및 전달
   if (message.type === 'URL_CHANGED') {
-    console.log('🔄 URL 변경:', message.data?.url);
     
     // Storage에 저장
     chrome.storage.local.set({ currentUrlInfo: message.data }).catch(console.error);
@@ -120,7 +107,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'HIGHLIGHT_TEXT') {
     const tabId = message.tabId || sender.tab?.id;
     
-    console.log('🎨 하이라이트 요청 수신:', { tabId, text: message.text?.substring(0, 50) });
     
     if (!tabId) {
       console.error('❌ 탭 정보 없음');
@@ -134,12 +120,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       text: message.text
     })
     .then(response => {
-      console.log('✅ 하이라이트 응답:', response);
       sendResponse(response || { success: true });
     })
     .catch((error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : '알 수 없는 오류';
-      console.error('❌ 하이라이트 에러:', errorMessage);
       sendResponse({ success: false, error: errorMessage });
     });
     
@@ -177,7 +161,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
 
   // URL 변경 감지 (새로운 페이지로 이동) - 최우선 처리
   if (changeInfo.url) {
-    console.log(`🔄 GitHub URL 변경 감지 [${tabId}]: ${changeInfo.url}`);
     
     // 즉시 처리 (디바운싱 없이)
     try {
@@ -185,17 +168,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
         type: 'URL_NAVIGATION_DETECTED',
         url: changeInfo.url
       });
-      console.log(`✅ URL 변경 알림 전송 [${tabId}]`);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      console.log(`⚠️ URL 변경 알림 실패 [${tabId}]:`, errorMessage);
     }
     return; // URL 변경시에는 다른 처리 생략
   }
   
   // 새로고침 감지 (로딩 시작, URL 변경 없음)
   if (changeInfo.status === 'loading' && !changeInfo.url) {
-    console.log(`🔄 GitHub 페이지 새로고침 감지 [${tabId}]: ${tab.url}`);
     
     // 디바운싱 적용 (200ms)
     const timer = setTimeout(async () => {
@@ -204,10 +184,8 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
           type: 'PAGE_REFRESH_DETECTED',
           url: tab.url
         });
-        console.log(`✅ 새로고침 알림 전송 [${tabId}]`);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.log(`⚠️ 새로고침 알림 실패 [${tabId}]:`, errorMessage);
       }
       tabEventTimers.delete(tabId);
     }, 200);
@@ -218,17 +196,14 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
   
   // 페이지 로딩 완료
   if (changeInfo.status === 'complete') {
-    console.log(`📄 GitHub 페이지 로딩 완료 [${tabId}]: ${tab.url}`);
     
     // 디바운싱 적용 (500ms)
     const timer = setTimeout(async () => {
       // Content script 상태 확인 및 필요시 주입
       const isReady = await isContentScriptReady(tabId);
-      console.log(`${isReady ? '✅' : '⚠️'} Content script 상태 [${tabId}]: ${isReady ? '준비됨' : '준비 안됨'}`);
       
       // 준비되지 않았으면 주입
       if (!isReady) {
-        console.log(`🔄 Content script 자동 주입 [${tabId}]`);
         await injectContentScript(tabId);
         
         // 주입 후 추가 대기
@@ -241,10 +216,8 @@ chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
           type: 'PAGE_LOAD_COMPLETED',
           url: tab.url
         });
-        console.log(`✅ 페이지 로딩 완료 알림 전송 [${tabId}]`);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.log(`⚠️ 페이지 로딩 완료 알림 실패 [${tabId}]:`, errorMessage);
       }
       
       tabEventTimers.delete(tabId);
@@ -260,9 +233,7 @@ chrome.action.onClicked.addListener(async (tab) => {
     try {
       await chrome.sidePanel.open({ windowId: tab.windowId });
     } catch (error) {
-      console.error('❌ 사이드패널 열기 실패:', error);
     }
   }
 });
 
-console.log('🎉 Background script 초기화 완료');

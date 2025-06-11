@@ -238,7 +238,6 @@ export const IssueDetailInfo = ({
   // 텍스트 하이라이트 기능
   const handleHighlightText = async () => {
     if (!highlightedBody || highlightedBody.trim() === '') {
-      console.log('하이라이트할 텍스트가 없음');
       toast.error('하이라이트할 텍스트가 없습니다.', {
         style: {
           background: 'var(--bg-primary)',
@@ -259,7 +258,6 @@ export const IssueDetailInfo = ({
       }
 
       const tabId = tabs[0].id;
-      console.log('하이라이트 대상 탭:', tabId, tabs[0].url);
 
       // GitHub 이슈 페이지인지 확인
       if (!tabs[0].url?.includes('github.com') || !tabs[0].url?.includes('/issues/')) {
@@ -276,7 +274,6 @@ export const IssueDetailInfo = ({
       });
 
       if (response?.success) {
-        console.log('하이라이트 성공');
         toast.success('핵심 내용이 하이라이트되었습니다!', {
           style: {
             background: 'var(--bg-primary)',
@@ -288,8 +285,6 @@ export const IssueDetailInfo = ({
         throw new Error('하이라이트 실행 실패');
       }
     } catch (error) {
-      console.error('하이라이트 실행 중 오류:', error);
-      
       // 사용자에게 친화적인 오류 메시지 표시
       if (error instanceof Error) {
         if (error.message.includes('Could not establish connection')) {
@@ -341,8 +336,6 @@ export const IssueDetailInfo = ({
           });
         });
       } catch (error) {
-        console.log(`메시지 전송 시도 ${attempt}/${maxRetries} 실패:`, error);
-        
         if (attempt === maxRetries) {
           throw error;
         }
