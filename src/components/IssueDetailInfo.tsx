@@ -148,7 +148,7 @@ const ExpandableSection = ({
     <div className={`overflow-hidden transition-all duration-500 ease-in-out ${
       isOpen ? 'max-h-96 opacity-100 mt-3' : 'max-h-0 opacity-0'
     }`}>
-      <div className="bg-[var(--bg-tertiary)] text-sm p-4 rounded-lg border border-[var(--border-primary)] text-[var(--text-secondary)] markdown-body shadow-inner animate-fade-in-scale custom-scrollbar hover-lift">
+      <div className="bg-[var(--bg-tertiary)] text-sm p-4 rounded-lg border border-[var(--border-primary)] text-[var(--text-secondary)] markdown-body shadow-inner animate-fade-in-scale custom-scrollbar hover-lift max-h-80 overflow-y-auto">
         <ReactMarkdown
           components={{
             a: ({ href, children, ...props }) => (
@@ -164,12 +164,12 @@ const ExpandableSection = ({
               </a>
             ),
             ol: ({ children, ...props }) => (
-              <ol className="list-decimal list-inside space-y-1 ml-4" {...props}>
+              <ol className="list-decimal list-inside space-y-1" {...props}>
                 {children}
               </ol>
             ),
             ul: ({ children, ...props }) => (
-              <ul className="list-disc list-inside space-y-1 ml-4" {...props}>
+              <ul className="list-disc list-inside space-y-1" {...props}>
                 {children}
               </ul>
             ),
