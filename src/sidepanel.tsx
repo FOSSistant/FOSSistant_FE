@@ -117,7 +117,6 @@ const SidePanel: React.FC = () => {
 
   // URL 처리 및 페이지 타입 설정 로직을 함수로 분리
   const handleUrlUpdate = async (urlInfo: UrlInfo) => {
-    console.log('Sidepanel - URL 업데이트:', urlInfo.url);
     
     setCurrentUrl(urlInfo);
     
@@ -125,10 +124,8 @@ const SidePanel: React.FC = () => {
     const analysis = analyzeUrl(urlInfo.url);
     
     if (analysis.isIssueList) {
-      console.log('Sidepanel - 이슈 리스트 페이지 감지');
       setPageType('list');
     } else if (analysis.isIssueDetail) {
-      console.log('Sidepanel - 이슈 상세 페이지 감지');
       setPageType('detail');
       await fetchDetailInfo(urlInfo.url);
     } else {
@@ -148,31 +145,22 @@ const SidePanel: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log('🚀 사이드패널 초기화 시작');
     
     // 초기 데이터 로드
     const initializeData = async () => {
       // GitHub 연결 상태 확인
-      console.log('🔍 GitHub 연결 상태 확인 중...');
       try {
         const result = await chrome.storage.local.get(['accessToken', 'refreshToken', 'currentUrlInfo']);
         const hasTokens = !!(result.accessToken && result.refreshToken);
-        console.log('🔑 토큰 상태:', { 
-          hasAccessToken: !!result.accessToken, 
-          hasRefreshToken: !!result.refreshToken,
-          connected: hasTokens
-        });
         setIsGithubConnected(hasTokens);
         
         // 저장된 URL 정보가 있으면 먼저 사용
         if (result.currentUrlInfo) {
-          console.log('📂 저장된 URL 정보 사용:', result.currentUrlInfo);
           await handleUrlUpdate(result.currentUrlInfo);
         }
         
         // 토큰이 있으면 현재 활성 탭의 URL 정보도 가져와서 최신 상태로 업데이트
         if (hasTokens) {
-          console.log('📍 현재 탭 URL 정보 요청');
           chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
             if (tabs[0]?.url) {
               const urlInfo = {
@@ -180,20 +168,16 @@ const SidePanel: React.FC = () => {
                 title: tabs[0].title || '',
                 favicon: tabs[0].favIconUrl || ''
               };
-              console.log('📍 현재 탭 정보:', urlInfo);
               
               // 저장된 URL과 다른 경우에만 업데이트
               if (!result.currentUrlInfo || result.currentUrlInfo.url !== urlInfo.url) {
-                console.log('🔄 활성 탭 URL로 업데이트');
                 await handleUrlUpdate(urlInfo);
               } else {
-                console.log('✅ 저장된 URL과 동일함, 업데이트 생략');
               }
             }
           });
         }
       } catch (error) {
-        console.error('❌ 인증 상태 확인 실패:', error);
         setIsGithubConnected(false);
       }
     };
@@ -207,7 +191,6 @@ const SidePanel: React.FC = () => {
       if (isGithubConnected) {
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
           if (tabs[0]?.url && tabs[0].url !== currentUrl?.url) {
-            console.log('🔄 주기적 체크: 탭 URL 변경 감지');
             const urlInfo = {
               url: tabs[0].url,
               title: tabs[0].title || '',
@@ -221,7 +204,6 @@ const SidePanel: React.FC = () => {
     
     // 탭 활성화 감지 (사용자가 다른 탭으로 이동했다가 돌아올 때)
     const handleFocus = async () => {
-      console.log('🔄 사이드패널 포커스 감지');
       if (isGithubConnected) {
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
           if (tabs[0]?.url) {
@@ -232,7 +214,6 @@ const SidePanel: React.FC = () => {
             };
             
             if (urlInfo.url !== currentUrl?.url) {
-              console.log('🔄 포커스 시 URL 변경 감지');
               await handleUrlUpdate(urlInfo);
             }
           }
@@ -243,7 +224,6 @@ const SidePanel: React.FC = () => {
     window.addEventListener('focus', handleFocus);
     
     return () => {
-      console.log('🧹 사이드패널 정리');
       clearInterval(tabCheckInterval);
       window.removeEventListener('focus', handleFocus);
     };
@@ -254,7 +234,6 @@ const SidePanel: React.FC = () => {
     const analysis = analyzeUrl(url);
     
     if (!analysis.isIssueDetail || !analysis.owner || !analysis.repo || !analysis.issueNumber) {
-      console.log('유효하지 않은 이슈 URL:', url);
       setIssueInfo(null);
       setIssueUrl(null);
       return;
@@ -264,7 +243,6 @@ const SidePanel: React.FC = () => {
     
     // 캐시된 데이터가 있으면 사용
     if (issueCache.has(issueId)) {
-      console.log('캐시된 이슈 정보 사용:', issueId);
       const cachedInfo = issueCache.get(issueId);
       setIssueInfo(cachedInfo || null);
       setIssueUrl(issueId);
@@ -272,8 +250,7 @@ const SidePanel: React.FC = () => {
     }
     
     // 이미 요청 중인 URL이면 중복 호출 방지
-    if (fetchingUrls.has(issueId)) {
-      console.log('이미 요청 중인 이슈:', issueId);
+    if (fetchingUrls.has(issueId)) {  
       return;
     }
     
@@ -282,7 +259,6 @@ const SidePanel: React.FC = () => {
     setIsLoading(true);
     
     try {
-      console.log('Sidepanel - 이슈 정보 요청:', issueId);
       
       const issueGuide: IssueGuide | null = await getIssueGuide({ issueId });
       
@@ -292,9 +268,7 @@ const SidePanel: React.FC = () => {
       setIssueUrl(issueId);
       setIssueInfo(issueGuide);
       
-      console.log('이슈 정보 로드 완료:', issueGuide ? '성공' : '실패');
     } catch (error) {
-      console.error('이슈 정보 가져오기 실패:', error);
       
       // 실패한 경우도 캐시에 저장 (null로 저장해서 재요청 방지)
       setIssueCache(prev => new Map(prev).set(issueId, null));
@@ -314,14 +288,12 @@ const SidePanel: React.FC = () => {
   const fetchTrendingRepos = async () => {
     // 캐시된 데이터가 있으면 사용
     if (trendingReposCache) {
-      console.log('캐시된 트렌딩 레포지토리 사용');
       setTrendingRepos(trendingReposCache);
       return;
     }
     
     // 이미 요청 중이면 중복 호출 방지
     if (isFetchingTrending) {
-      console.log('이미 트렌딩 레포지토리 요청 중');
       return;
     }
     
@@ -329,7 +301,6 @@ const SidePanel: React.FC = () => {
     setIsLoading(true);
     
     try {
-      console.log('트렌딩 레포지토리 요청 시작');
       const response = await fetch('https://api.github.com/search/repositories?q=stars:>1000&sort=stars&order=desc&per_page=5');
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -352,9 +323,7 @@ const SidePanel: React.FC = () => {
       setTrendingReposCache(repos);
       setTrendingRepos(repos);
       
-      console.log('트렌딩 레포지토리 로드 완료:', repos.length, '개');
     } catch (error) {
-      console.error('트렌딩 레포지토리 가져오기 실패:', error);
       setTrendingRepos([]);
     } finally {
       setIsLoading(false);
@@ -379,25 +348,20 @@ const SidePanel: React.FC = () => {
             </div>
             <button
               onClick={async () => {
-                console.log('🔑 GitHub 로그인 시도 중...');
                 try {
                   chrome.runtime.sendMessage({ type: 'REQUEST_GITHUB_CODE' }, async (response) => {
-                    console.log('📥 GitHub 인증 응답:', response);
                     
                     if (chrome.runtime.lastError) {
-                      console.error('❌ 런타임 에러:', chrome.runtime.lastError);
                       return;
                     }
                     
                     if (response) {
-                      console.log('✅ GitHub 인증 성공');
                       setIsGithubConnected(true);
                       
                       // 인증 성공 후 저장된 URL 정보 먼저 확인
                       try {
                         const storedData = await chrome.storage.local.get(['currentUrlInfo']);
                         if (storedData.currentUrlInfo) {
-                          console.log('📂 인증 후 저장된 URL 정보 사용:', storedData.currentUrlInfo);
                           await handleUrlUpdate(storedData.currentUrlInfo);
                         } else {
                           // 저장된 정보가 없으면 현재 탭 정보 사용
@@ -408,21 +372,17 @@ const SidePanel: React.FC = () => {
                                 title: tabs[0].title || '',
                                 favicon: tabs[0].favIconUrl || ''
                               };
-                              console.log('📍 인증 후 현재 탭 정보:', urlInfo);
                               await handleUrlUpdate(urlInfo);
                             }
                           });
                         }
                       } catch (error) {
-                        console.error('❌ 인증 후 URL 정보 로드 실패:', error);
                       }
                     } else {
-                      console.log('❌ GitHub 인증 실패');
                       setIsGithubConnected(false);
                     }
                   });
                 } catch (error) {
-                  console.error('❌ GitHub 로그인 에러:', error);
                   setIsGithubConnected(false);
                 }
               }}

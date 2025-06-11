@@ -1,4 +1,3 @@
-console.log('🚀 FOSSistant Content Script 시작');
 
 import { injectStyles } from './contentStyle';
 import { handleUrlUpdate, resetLabelingState } from './content/urlHandler';
@@ -14,10 +13,8 @@ function isGitHubSite(): boolean {
 }
 // 메시지 리스너
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log('📨 Content script 메시지 수신:', message.type, message);
 
     if (message.type === 'PING') {
-      console.log('🏓 PING 메시지 수신 - 응답 전송');
       sendResponse({ 
         ready: true, 
         url: window.location.href,
@@ -28,7 +25,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // Background에서 감지한 모든 페이지 변화 메시지를 통합 처리
   if (['URL_NAVIGATION_DETECTED', 'PAGE_REFRESH_DETECTED', 'PAGE_LOAD_COMPLETED'].includes(message.type)) {
-    console.log(`🔄 페이지 변화 감지 (${message.type}):`, message.url);
     
     // 디바운싱을 적용한 URL 변경 처리
     handleUrlChangeWithDebounce(message.url);
@@ -38,7 +34,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   
   // 텍스트 하이라이트
   if (message.type === 'HIGHLIGHT_TEXT') {
-    console.log('🎨 하이라이트 메시지 수신:', message.text?.substring(0, 50));
     
     try {
       if (!isGitHubSite()) {
@@ -46,10 +41,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       }
       
       highlightText(message.text);
-      console.log('✅ 하이라이트 처리 완료');
       sendResponse({ success: true });
     } catch (error) {
-      console.error('❌ 하이라이트 처리 실패:', error);
       sendResponse({ 
         success: false, 
         error: error instanceof Error ? error.message : '알 수 없는 오류' 
@@ -58,7 +51,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     return true;
   }
   
-  console.log('⚠️ 처리되지 않은 메시지 타입:', message.type);
   return false;
 });
 
@@ -67,9 +59,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // 초기화 함수
 async function initialize(): Promise<void> {
   if (isInitialized) return;
-  
-  console.log('🔧 Content script 초기화 시작');
-  
+    
   try {
     // 스타일 주입
     injectStyles();
@@ -81,7 +71,6 @@ async function initialize(): Promise<void> {
     await processUrlChange();
     
     isInitialized = true;
-    console.log('✅ Content script 초기화 완료');
     
     // Background에 준비 완료 신호 전송
     setTimeout(() => {
@@ -89,7 +78,6 @@ async function initialize(): Promise<void> {
     }, 500);
     
   } catch (error) {
-    console.error('❌ 초기화 실패:', error);
   }
 }
 
@@ -101,25 +89,21 @@ function setupUrlChangeDetection(): void {
   
   history.pushState = function(...args) {
     originalPushState.apply(history, args);
-    console.log('🔄 pushState 이벤트 감지');
     handleUrlChangeWithDebounce();
   };
   
   history.replaceState = function(...args) {
     originalReplaceState.apply(history, args);
-    console.log('🔄 replaceState 이벤트 감지');
     handleUrlChangeWithDebounce();
   };
   
   // popstate 이벤트 감지 (뒤로가기/앞으로가기)
   window.addEventListener('popstate', () => {
-    console.log('🔄 popstate 이벤트 감지');
     handleUrlChangeWithDebounce();
   });
   
   // beforeunload 이벤트 감지 (새로고침/페이지 이탈)
   window.addEventListener('beforeunload', () => {
-    console.log('🔄 beforeunload 이벤트 감지');
     lastUrl = ''; // 새로고침 감지를 위해 초기화
   });
   
@@ -147,7 +131,6 @@ function setupUrlChangeDetection(): void {
         });
         
         if (hasContentChanges) {
-          console.log('🔄 GitHub DOM 변화 감지');
           handleUrlChangeWithDebounce();
         }
       }, 200);
@@ -158,7 +141,6 @@ function setupUrlChangeDetection(): void {
       subtree: true
     });
     
-    console.log('✅ MutationObserver 설정 완료');
   }
 }
 
@@ -182,24 +164,20 @@ function handleUrlChangeWithDebounce(url?: string): void {
     processUrlChange(targetUrl);
   }, 300);
   
-  console.log('⏰ URL 변경 디바운스 타이머 설정 (300ms)');
 }
 
 // URL 변경 처리
 async function processUrlChange(targetUrl?: string): Promise<void> {
   if (isProcessingUrlChange) {
-    console.log('🚫 이미 URL 변경 처리 중, 요청 무시');
     return;
   }
   
   const currentUrl = targetUrl || window.location.href;
   
   if (currentUrl === lastUrl) {
-    console.log('🚫 동일한 URL 중복 처리 방지:', currentUrl);
     return;
   }
   
-  console.log('🔄 URL 변경 처리 시작:', currentUrl);
   isProcessingUrlChange = true;
   lastUrl = currentUrl;
   
@@ -220,7 +198,6 @@ async function processUrlChange(targetUrl?: string): Promise<void> {
         }
       });
     } catch (error) {
-      console.error('❌ URL 변경 알림 실패:', error);
     }
     
     // GitHub URL 처리
@@ -232,12 +209,10 @@ async function processUrlChange(targetUrl?: string): Promise<void> {
           favicon: '' 
         });
       } catch (error) {
-        console.error('❌ URL 핸들러 오류:', error);
       }
     }
   } finally {
     isProcessingUrlChange = false;
-    console.log('🏁 URL 변경 처리 완료');
   }
 }
 
@@ -246,7 +221,6 @@ async function processUrlChange(targetUrl?: string): Promise<void> {
 function highlightText(textToHighlight: string): void {
   if (!textToHighlight?.trim()) return;
   
-  console.log('🎨 텍스트 하이라이트:', textToHighlight);
   
   // 기존 하이라이트 제거
   removeHighlights();
@@ -266,7 +240,6 @@ function highlightText(textToHighlight: string): void {
   }
   
   if (!content) {
-    console.log('⚠️ 하이라이트할 영역을 찾을 수 없음');
     return;
   }
   
@@ -354,13 +327,10 @@ function notifyContentScriptReady(): void {
       timestamp: Date.now()
     }, (response) => {
       if (chrome.runtime.lastError) {
-        console.log('⚠️ 준비 신호 전송 실패:', chrome.runtime.lastError.message);
       } else {
-        console.log('✅ 준비 신호 전송 성공');
       }
     });
   } catch (error) {
-    console.error('❌ 준비 신호 전송 오류:', error);
   }
 }
 
@@ -371,7 +341,6 @@ if (document.readyState === 'loading') {
   initialize();
 }
 
-console.log('🎉 Content script 설정 완료');
 
 
 

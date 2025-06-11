@@ -22,7 +22,6 @@ export const requestGitHubCode = async (): Promise<boolean> => {
         async (redirectUrl) => {
           try {
             if (chrome.runtime.lastError || !redirectUrl) {
-              console.error("OAuth 실패:", chrome.runtime.lastError);
               resolve(false);
               return;
             }
@@ -79,7 +78,6 @@ export const patchMyLevel = async (level: "BEGINNER" | "EXPERIENCED"): Promise<b
     });
     return true;
   } catch (error) {
-    console.log(error);
     return false;
   }
 }

@@ -56,7 +56,6 @@ async function sendMessageToTab(tabId: number, message: any): Promise<any> {
       return new Promise((resolve, reject) => {
         chrome.tabs.sendMessage(tabId, message, (response) => {
           if (chrome.runtime.lastError) {
-            console.error(`❌ 재시도 메시지 전송 실패 [${tabId}]:`, chrome.runtime.lastError.message);
             reject(new Error(chrome.runtime.lastError.message));
           } else {
             resolve(response);
@@ -99,7 +98,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.type === 'URL_CHANGED') {
     
     // Storage에 저장
-    chrome.storage.local.set({ currentUrlInfo: message.data }).catch(console.error);
+    chrome.storage.local.set({ currentUrlInfo: message.data }).catch();
     return;
   }
 
@@ -109,7 +108,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     
     
     if (!tabId) {
-      console.error('❌ 탭 정보 없음');
       sendResponse({ success: false, error: '탭 정보 없음' });
       return;
     }

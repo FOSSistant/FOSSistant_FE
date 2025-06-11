@@ -46,7 +46,6 @@ export const getIssuesFromGithub = async (owner: string, repo: string, page: num
      return top30Issues;
    });;
   } catch (error) {
-    console.log(error);
     return null;
   }
 };
@@ -59,7 +58,6 @@ export const getIssueFromGithub = async (owner: string, repo: string, issueNumbe
       return data;
     });
   } catch (error) {
-    console.log(error);
     return null;
   }
 };
@@ -67,7 +65,6 @@ export const getIssueFromGithub = async (owner: string, repo: string, issueNumbe
 
 export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => {
   try {
-    console.log(issues);
     const response = await fetch(`${dev_server}/issues`, {
       method: "POST",
       body: JSON.stringify({ issues }),
@@ -78,7 +75,6 @@ export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => 
     const { result } = await response.json();
     return result.results;
   } catch (error) {
-    console.log(error);
     return [];
   }
 };
@@ -86,7 +82,6 @@ export const getIssueLabels = async (issues: Issue[]): Promise<IssueLabel[]> => 
 // 단일 이슈의의 가이드 가져오기
 export const getIssueGuide = async (issue: Issue): Promise<IssueGuide | null> => {
   try {
-    console.log(issue);
     const response = await fetchWithInterceptors(`${dev_server}/issues/guide`, {
       method: "POST",
       headers: {
@@ -97,7 +92,6 @@ export const getIssueGuide = async (issue: Issue): Promise<IssueGuide | null> =>
     const { result } = await response.json();
     return result;
   } catch (error) {
-    console.log(error);
     return null;
   }
 };

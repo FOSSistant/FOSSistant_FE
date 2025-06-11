@@ -36,9 +36,7 @@ export function createFloatingButton() {
 
     chrome.runtime.sendMessage({ type: 'TOGGLE_SIDEPANEL' }, (response) => {
       if (chrome.runtime.lastError) {
-        console.log('사이드 패널 열기 실패:', chrome.runtime.lastError.message);
       } else if (!response?.success) {
-        console.log('사이드 패널 열기 실패:', response?.error || '알 수 없는 에러');
       }
       
       // 1초 후에 버튼 다시 활성화

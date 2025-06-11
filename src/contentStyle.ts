@@ -106,5 +106,4 @@ export function injectStyles() {
   styleSheet.textContent = styles;
   document.head.appendChild(styleSheet);
   
-  console.log('✅ FOSSistant 스타일 주입 완료');
 } 
