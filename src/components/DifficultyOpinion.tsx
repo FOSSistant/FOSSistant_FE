@@ -43,7 +43,7 @@ const labelText = {
   EASY: '🧩 easy',
   MEDIUM: '⚙️ medium',
   HARD: '🔥 hard',
-  MISC: '❓ misc',
+  MISC: '📌 misc',
   UNKNOWN: '❓ unknown',
 };
 

@@ -42,7 +42,7 @@ const getDifficultyInKorean = (difficulty: DifficultyType): string => {
     case 'hard':
       return '🔥 hard';
     case 'misc':
-      return '❓ misc';
+      return '📌 misc';
     case 'unknown':
       return '❓ unknown';
     default:
@@ -76,7 +76,7 @@ const getDifficultyIcon = (difficulty: DifficultyType): string => {
     case 'hard':
       return '🔥';
     case 'misc':
-      return '❓';
+      return '📌';
     case 'unknown':
       return '❓';
     default:
@@ -186,7 +186,7 @@ export const IssueDetailInfo = ({
   const [showGuide, setShowGuide] = useState(false);
   const [showLinks, setShowLinks] = useState(false);
   const [isHighlighting, setIsHighlighting] = useState(false);
-
+  
   // 텍스트 하이라이트 기능
   // 텍스트 하이라이트 기능
   const handleHighlightText = async () => {

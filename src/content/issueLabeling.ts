@@ -55,7 +55,7 @@ function createDifficultyLabel(tier: string, shouldHighlight: boolean = false): 
   const icon = tier === 'easy' ? '🧩' : 
               tier === 'medium' ? '⚙️' :
               tier === 'hard' ? '🔥' :
-              tier === 'misc' ? '❓' :
+              tier === 'misc' ? '📌' :
               tier === 'unknown' ? '❓' : '❓';
               
   newLabel.innerHTML = `
