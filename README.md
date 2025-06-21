@@ -1,4 +1,4 @@
-# GitHub Issues Helper 🚀
+# FOSSistant Chrome Extension
 
 GitHub Issues 페이지를 향상시켜 오픈소스 프로젝트 기여를 돕는 Chrome 확장 프로그램입니다.
 
