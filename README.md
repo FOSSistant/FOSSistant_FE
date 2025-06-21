@@ -2,6 +2,11 @@
 
 GitHub Issues 페이지를 향상시켜 오픈소스 프로젝트 기여를 돕는 Chrome 확장 프로그램입니다.
 
+
+## 대략적인 구조
+![image](https://github.com/user-attachments/assets/ede6f7d3-28ca-46bd-92d1-4481ba07e781)
+
+
 ## ✨ 주요 기능
 
 ### 이슈 목록 페이지
